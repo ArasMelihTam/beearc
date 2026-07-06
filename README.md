@@ -1,50 +1,39 @@
-# Welcome to your Expo app 👋
+# 🐝 Beearc
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A 100% free, open-source, **offline-first** beekeeping management app.
 
-## Get started
+Built for hobby and sideline beekeepers (1–100 hives) standing in a field with no signal, wearing sticky gloves, in direct sunlight.
 
-1. Install dependencies
+- No ads, no tracking, no analytics, no login required for core use. Ever.
+- All data lives on your device (SQLite). The network is an optional extra, never a requirement.
+- Bilingual: Türkçe & English.
+- Funded by voluntary donations only.
 
-   ```bash
-   npm install
-   ```
+## Status
 
-2. Start the app
+🚧 In early development. Not yet released. See [docs/STATE.md](docs/STATE.md) for current progress.
 
-   ```bash
-   npx expo start
-   ```
+## Tech
 
-In the output, you'll find options to open the app in a
+Expo (React Native) + TypeScript · expo-router · expo-sqlite + Drizzle ORM · Zustand · i18n (TR/EN)
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Design Language
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- Primary: #D29D30 (Honey Gold)
+- Background: #F8F7DE (Parchment White) / #121212 (Dark)
+- Text: #3A200C (Dark Umber)
+- Status: Sage #7A9E7E / Terracotta #C06E52 / Slate #2C3E50
+- Accessibility: WCAG AA contrast, 56dp primary tap targets, outdoor-readable
 
-## Get a fresh project
-
-When you're ready, run:
+## Run it
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Scan the QR code with Expo Go on your phone.
 
-## Learn more
+## License
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+[GPL-3.0](LICENSE) — free forever, and forks must stay free too.
