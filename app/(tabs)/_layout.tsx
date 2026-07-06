@@ -1,34 +1,48 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '@/src/theme/useTheme';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function TabsLayout() {
+  const { tokens } = useTheme();
+  const { t } = useTranslation();
+
+  const icon =
+    (name: IconName) =>
+    ({ color, size }: { color: string; size: number }) => (
+      <MaterialCommunityIcons name={name} size={size} color={color} />
+    );
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        tabBarActiveTintColor: tokens.primary,
+        tabBarInactiveTintColor: tokens.textMuted,
+        tabBarStyle: {
+          backgroundColor: tokens.surface,
+          borderTopColor: tokens.border,
+        },
+        tabBarLabelStyle: { fontSize: 12, fontWeight: '600' },
+      }}
+    >
       <Tabs.Screen
         name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
+        options={{ title: t('tabs.today'), tabBarIcon: icon('calendar-check') }}
       />
       <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
+        name="hives"
+        options={{ title: t('tabs.hives'), tabBarIcon: icon('beehive-outline') }}
+      />
+      <Tabs.Screen
+        name="map"
+        options={{ title: t('tabs.map'), tabBarIcon: icon('map-outline') }}
+      />
+      <Tabs.Screen
+        name="more"
+        options={{ title: t('tabs.more'), tabBarIcon: icon('dots-horizontal') }}
       />
     </Tabs>
   );

@@ -1,0 +1,32 @@
+{
+  "tabs": {
+    "today": "Today",
+    "hives": "Hives",
+    "map": "Map",
+    "more": "More"
+  },
+  "today": {
+    "title": "Today",
+    "empty": "Nothing to do yet. Tasks and reminders arrive in a later step (M4)."
+  },
+  "hives": {
+    "title": "Hives",
+    "empty": "No hives yet. Creating apiaries and hives arrives in the next step (M2)."
+  },
+  "map": {
+    "title": "Map",
+    "empty": "The offline apiary map arrives later (M9)."
+  },
+  "more": {
+    "title": "More",
+    "appearance": "Appearance",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "language": "Language",
+    "languageTurkish": "Türkçe",
+    "languageEnglish": "English",
+    "about": "Beearc — free, open-source, offline-first beekeeping.",
+    "version": "Version"
+  }
+}

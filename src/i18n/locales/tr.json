@@ -1,0 +1,32 @@
+{
+  "tabs": {
+    "today": "Bugün",
+    "hives": "Kovanlar",
+    "map": "Harita",
+    "more": "Diğer"
+  },
+  "today": {
+    "title": "Bugün",
+    "empty": "Henüz yapılacak bir şey yok. Görevler ve hatırlatmalar ileriki adımda gelecek (M4)."
+  },
+  "hives": {
+    "title": "Kovanlar",
+    "empty": "Henüz kovan yok. Arılık ve kovan oluşturma bir sonraki adımda gelecek (M2)."
+  },
+  "map": {
+    "title": "Harita",
+    "empty": "Çevrimdışı arılık haritası daha sonra gelecek (M9)."
+  },
+  "more": {
+    "title": "Diğer",
+    "appearance": "Görünüm",
+    "themeSystem": "Sistem",
+    "themeLight": "Açık",
+    "themeDark": "Koyu",
+    "language": "Dil",
+    "languageTurkish": "Türkçe",
+    "languageEnglish": "English",
+    "about": "Beearc — ücretsiz, açık kaynak, çevrimdışı öncelikli arıcılık.",
+    "version": "Sürüm"
+  }
+}
