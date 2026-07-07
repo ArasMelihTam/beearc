@@ -1,0 +1,218 @@
+import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+
+/**
+ * Beearc database schema — master prompt §6 is the source of truth.
+ *
+ * Conventions (locked):
+ * - UUID (text) primary keys — sync-proof for a future sync engine.
+ * - ISO-8601 UTC strings for all timestamps (SQLite has no date type;
+ *   ISO strings sort correctly and survive export/import unchanged).
+ * - Soft delete via nullable `archived_at` — we never lose beekeeping history.
+ * - ALL access goes through src/db/repos/, never import this in screens.
+ *
+ * New concept — Drizzle schema: each `sqliteTable()` call below describes one
+ * SQL table in TypeScript. drizzle-kit reads this file and generates the real
+ * SQL migration files in /drizzle, and the app gets full type-safety for free:
+ * a typo in a column name is a compile error, not a runtime crash in the field.
+ */
+
+// ---------------------------------------------------------------------------
+// apiaries — a physical location where hives stand (e.g. "Köy arılığı")
+// ---------------------------------------------------------------------------
+export const apiaries = sqliteTable('apiaries', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  latitude: real('latitude'),
+  longitude: real('longitude'),
+  notes: text('notes'),
+  createdAt: text('created_at').notNull(),
+  archivedAt: text('archived_at'),
+});
+
+// ---------------------------------------------------------------------------
+// hives — one colony box, always inside an apiary
+// ---------------------------------------------------------------------------
+// All major hive styles (user decision), each explained in the picker UI.
+// Values are stable identifiers — only the i18n labels are user-facing.
+// 'traditional' covers fixed-comb hives like Turkey's kara kovan.
+export const HIVE_TYPES = [
+  'langstroth',
+  'dadant',
+  'top_bar',
+  'warre',
+  'traditional',
+  'other',
+] as const;
+export type HiveType = (typeof HIVE_TYPES)[number];
+
+export const HIVE_STATUSES = ['healthy', 'warning', 'urgent'] as const;
+export type HiveStatus = (typeof HIVE_STATUSES)[number];
+
+export const hives = sqliteTable('hives', {
+  id: text('id').primaryKey(),
+  apiaryId: text('apiary_id')
+    .notNull()
+    .references(() => apiaries.id),
+  label: text('label').notNull(), // e.g. "K-07"
+  hiveType: text('hive_type', { enum: HIVE_TYPES }).notNull(),
+  /**
+   * DERIVED field (§7): recomputed by the rules engine after every
+   * inspection/task change — never set by hand in the UI.
+   * Stored (not computed on the fly) so lists and map pins render instantly.
+   */
+  status: text('status', { enum: HIVE_STATUSES }).notNull().default('healthy'),
+  mapLat: real('map_lat'),
+  mapLng: real('map_lng'),
+  colorTag: text('color_tag'),
+  notes: text('notes'),
+  createdAt: text('created_at').notNull(),
+  archivedAt: text('archived_at'),
+});
+
+// ---------------------------------------------------------------------------
+// queens — queen history per hive; age is computed from introduced_at, never stored
+// ---------------------------------------------------------------------------
+export const QUEEN_ORIGINS = ['bred', 'bought', 'swarm', 'supersedure'] as const;
+export type QueenOrigin = (typeof QUEEN_ORIGINS)[number];
+
+export const queens = sqliteTable('queens', {
+  id: text('id').primaryKey(),
+  hiveId: text('hive_id')
+    .notNull()
+    .references(() => hives.id),
+  introducedAt: text('introduced_at').notNull(), // ISO date
+  origin: text('origin', { enum: QUEEN_ORIGINS }).notNull(),
+  markColor: text('mark_color'),
+  productivityScore: integer('productivity_score'), // 1–5
+  replacedAt: text('replaced_at'),
+  notes: text('notes'),
+});
+
+// ---------------------------------------------------------------------------
+// inspections — the heart of the app (rapid entry arrives in M3)
+// ---------------------------------------------------------------------------
+export const VARROA_METHODS = ['visual', 'sticky_board', 'alcohol_wash', 'sugar_roll'] as const;
+export type VarroaMethod = (typeof VARROA_METHODS)[number];
+
+export const inspections = sqliteTable('inspections', {
+  id: text('id').primaryKey(),
+  hiveId: text('hive_id')
+    .notNull()
+    .references(() => hives.id),
+  inspectedAt: text('inspected_at').notNull(),
+  // `mode: 'boolean'` stores 0/1 in SQLite but gives us true/false in TS
+  queenSeen: integer('queen_seen', { mode: 'boolean' }).notNull(),
+  eggsSeen: integer('eggs_seen', { mode: 'boolean' }).notNull(),
+  larvaeCondition: integer('larvae_condition'), // 0–5
+  broodPattern: integer('brood_pattern'), // 0–5
+  honeyStores: integer('honey_stores'), // 0–5
+  pollenStores: integer('pollen_stores'), // 0–5
+  varroaCount: integer('varroa_count'),
+  varroaMethod: text('varroa_method', { enum: VARROA_METHODS }),
+  temperament: integer('temperament'), // 0–5
+  // Colony & hive condition (user addition, M3): both 0–5, null = not checked
+  beeDensity: integer('bee_density'),
+  moisture: integer('moisture'),
+  // Pests & disease (user addition, M3): nullable booleans —
+  // null = not checked, false = checked and clear, true = found. Never
+  // default these to false: "didn't look" must not read as "no pests".
+  beetlesSeen: integer('beetles_seen', { mode: 'boolean' }),
+  waxMothSeen: integer('wax_moth_seen', { mode: 'boolean' }),
+  diseaseSignsSeen: integer('disease_signs_seen', { mode: 'boolean' }),
+  weatherSnapshot: text('weather_snapshot'), // JSON string (M8)
+  noteText: text('note_text'),
+  voiceTranscript: text('voice_transcript'), // M6
+  createdAt: text('created_at').notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// inspection_photos — file paths into the app documents dir (M6)
+// ---------------------------------------------------------------------------
+export const inspectionPhotos = sqliteTable('inspection_photos', {
+  id: text('id').primaryKey(),
+  inspectionId: text('inspection_id')
+    .notNull()
+    .references(() => inspections.id),
+  filePath: text('file_path').notNull(),
+  createdAt: text('created_at').notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// treatments — varroa & co.; last treatment is surfaced to prevent overdose (M5)
+// ---------------------------------------------------------------------------
+export const TREATMENT_PRODUCTS = [
+  'formic_acid',
+  'oxalic_acid',
+  'thymol',
+  'amitraz',
+  'other',
+] as const;
+export type TreatmentProduct = (typeof TREATMENT_PRODUCTS)[number];
+
+export const treatments = sqliteTable('treatments', {
+  id: text('id').primaryKey(),
+  hiveId: text('hive_id')
+    .notNull()
+    .references(() => hives.id),
+  product: text('product', { enum: TREATMENT_PRODUCTS }).notNull(),
+  dose: text('dose'),
+  startedAt: text('started_at').notNull(),
+  endedAt: text('ended_at'),
+  notes: text('notes'),
+});
+
+// ---------------------------------------------------------------------------
+// tasks — manual or rule-generated (`source` = 'manual' | 'rule:<rule_id>')
+// ---------------------------------------------------------------------------
+export const tasks = sqliteTable('tasks', {
+  id: text('id').primaryKey(),
+  hiveId: text('hive_id').references(() => hives.id),
+  apiaryId: text('apiary_id').references(() => apiaries.id),
+  title: text('title').notNull(),
+  details: text('details'),
+  dueAt: text('due_at').notNull(),
+  doneAt: text('done_at'),
+  source: text('source').notNull().default('manual'),
+  createdAt: text('created_at').notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// equipment — supers, feeders, excluders… drives rule R1 (M4/M5)
+// ---------------------------------------------------------------------------
+export const EQUIPMENT_ITEMS = [
+  'deep_super',
+  'medium_super',
+  'queen_excluder',
+  'feeder',
+  'frames',
+  'other',
+] as const;
+export type EquipmentItem = (typeof EQUIPMENT_ITEMS)[number];
+
+export const equipment = sqliteTable('equipment', {
+  id: text('id').primaryKey(),
+  hiveId: text('hive_id')
+    .notNull()
+    .references(() => hives.id),
+  item: text('item', { enum: EQUIPMENT_ITEMS }).notNull(),
+  quantity: integer('quantity').notNull().default(1),
+  addedAt: text('added_at').notNull(),
+  removedAt: text('removed_at'),
+});
+
+// ---------------------------------------------------------------------------
+// settings — key/value store (theme, language, varroa thresholds, backup flag)
+// ---------------------------------------------------------------------------
+export const settings = sqliteTable('settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+});
+
+// ---------------------------------------------------------------------------
+// schema_version — our own explicit version marker (§6), independent of the
+// bookkeeping table Drizzle keeps for itself. Exporters/backups (M7) read it.
+// ---------------------------------------------------------------------------
+export const schemaVersion = sqliteTable('schema_version', {
+  version: integer('version').primaryKey(),
+  appliedAt: text('applied_at').notNull(),
+});

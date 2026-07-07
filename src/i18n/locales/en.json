@@ -5,13 +5,81 @@
     "map": "Map",
     "more": "More"
   },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "archive": "Archive"
+  },
+  "db": {
+    "migrationError": "Something went wrong opening the database. Please close and reopen the app. If it keeps happening, report this message:"
+  },
   "today": {
     "title": "Today",
     "empty": "Nothing to do yet. Tasks and reminders arrive in a later step (M4)."
   },
+  "apiaries": {
+    "title": "Apiaries",
+    "empty": "No apiaries yet. An apiary is the place where your hives stand — create your first one below.",
+    "add": "Add apiary",
+    "new": "New apiary",
+    "edit": "Edit apiary",
+    "hiveCount_one": "{{count}} hive",
+    "hiveCount_other": "{{count}} hives",
+    "name": "Name",
+    "namePlaceholder": "e.g. Village apiary",
+    "latitude": "Latitude (optional, for weather later)",
+    "longitude": "Longitude (optional)",
+    "notes": "Notes",
+    "nameRequired": "Please enter a name.",
+    "latLngInvalid": "Those coordinates look wrong — latitude must be between -90 and 90, longitude between -180 and 180.",
+    "archiveTitle": "Archive this apiary?",
+    "archiveMessage": "It will be hidden from your lists. Its history is kept — nothing is deleted.",
+    "archiveBlocked": "This apiary still has active hives. Archive them first."
+  },
   "hives": {
-    "title": "Hives",
-    "empty": "No hives yet. Creating apiaries and hives arrives in the next step (M2)."
+    "empty": "No hives here yet. Add your first hive below.",
+    "add": "Add hive",
+    "new": "New hive",
+    "edit": "Edit",
+    "label": "Label",
+    "labelPlaceholder": "e.g. K-07",
+    "labelRequired": "Please enter a label.",
+    "type": "Hive type",
+    "notes": "Notes",
+    "archiveTitle": "Archive this hive?",
+    "archiveMessage": "It will be hidden from your lists. Its history is kept — nothing is deleted."
+  },
+  "hiveType": {
+    "langstroth": {
+      "label": "Langstroth (standard)",
+      "desc": "The most common hive worldwide: stacked boxes with removable frames. If you bought it from a shop, it's probably this."
+    },
+    "dadant": {
+      "label": "Dadant",
+      "desc": "Like Langstroth but with a bigger, deeper brood box — the queen lays in one large chamber. Popular in cold climates."
+    },
+    "top_bar": {
+      "label": "Top-bar",
+      "desc": "A long horizontal hive. Bees hang comb from wooden bars — no frames, no stacked boxes."
+    },
+    "warre": {
+      "label": "Warré",
+      "desc": "A tower of small square boxes, new boxes added at the bottom. Low-intervention style."
+    },
+    "traditional": {
+      "label": "Traditional",
+      "desc": "Fixed-comb hives such as hollow logs, skeps, or baskets. Comb can't be removed for inspection."
+    },
+    "other": {
+      "label": "Other",
+      "desc": "Anything that doesn't fit the types above."
+    },
+    "standard": { "label": "Langstroth (standard)", "desc": "" }
+  },
+  "status": {
+    "healthy": "Healthy",
+    "warning": "Check soon",
+    "urgent": "Urgent"
   },
   "map": {
     "title": "Map",
@@ -27,6 +95,101 @@
     "languageTurkish": "Türkçe",
     "languageEnglish": "English",
     "about": "Beearc — free, open-source, offline-first beekeeping.",
-    "version": "Version"
+    "version": "Version",
+    "devSeed": "Load sample data (dev)",
+    "devSeedDone": "Sample apiary and hives created.",
+    "devSeedSkipped": "Database is not empty — nothing was changed."
+  },
+  "inspections": {
+    "new": "New inspection",
+    "add": "Add inspection",
+    "timeline": "Inspections",
+    "timelineEmpty": "No inspections yet. Log your first one below — it takes under a minute.",
+    "factorsTitle": "What did you check?",
+    "factorsHint": "Queen and eggs are always asked — they take two taps and power the alerts. Your selection is remembered for next time.",
+    "factorBrood": "Brood",
+    "factorBroodDesc": "Health of the young: larvae condition and how even the sealed brood pattern looks.",
+    "factorStores": "Stores",
+    "factorStoresDesc": "Food supplies: how much honey and pollen the colony has.",
+    "factorCondition": "Colony & hive condition",
+    "factorConditionDesc": "How strong the colony is (bees covering frames) and moisture inside the hive.",
+    "factorVarroa": "Varroa count",
+    "factorVarroaDesc": "Mite count — visual, sticky board, alcohol wash or sugar roll. Time-consuming; skip if you didn't count.",
+    "factorPests": "Pests & disease",
+    "factorPestsDesc": "Beetles, wax moths, and any signs of disease on brood or bees.",
+    "factorTemperament": "Temperament",
+    "factorTemperamentDesc": "How calm or aggressive the bees were while you worked.",
+    "continue": "Continue",
+    "queenSeen": "Queen seen",
+    "eggsSeen": "Eggs seen",
+    "larvae": "Larvae condition",
+    "brood": "Brood pattern",
+    "honey": "Honey stores",
+    "pollen": "Pollen stores",
+    "varroa": "Varroa",
+    "varroaCount": "Varroa count (mites)",
+    "varroaCountPlaceholder": "e.g. 12",
+    "varroaMethod": "Count method",
+    "varroaInvalid": "Varroa count must be a whole number (0 or more).",
+    "temperament": "Temperament",
+    "beeDensity": "Bee density",
+    "moisture": "Moisture in hive",
+    "beetlesSeen": "Beetles seen",
+    "waxMothSeen": "Wax moth seen",
+    "diseaseSignsSeen": "Signs of disease",
+    "note": "Note (optional)",
+    "notePlaceholder": "Anything worth remembering…",
+    "save": "Save inspection",
+    "notRecorded": "Not recorded",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "varroaMethod": {
+    "visual": "Visual count",
+    "sticky_board": "Sticky board",
+    "alcohol_wash": "Alcohol wash",
+    "sugar_roll": "Sugar roll"
+  },
+  "rating": {
+    "quality": {
+      "0": "None",
+      "1": "Very poor",
+      "2": "Poor",
+      "3": "Fair",
+      "4": "Good",
+      "5": "Excellent"
+    },
+    "stores": {
+      "0": "Empty",
+      "1": "Very low",
+      "2": "Low",
+      "3": "Fair",
+      "4": "Good",
+      "5": "Full"
+    },
+    "temperament": {
+      "0": "Very aggressive",
+      "1": "Aggressive",
+      "2": "Restless",
+      "3": "Fair",
+      "4": "Calm",
+      "5": "Very calm"
+    },
+    "density": {
+      "0": "Very weak",
+      "1": "Weak",
+      "2": "Below average",
+      "3": "Average",
+      "4": "Strong",
+      "5": "Very strong"
+    },
+    "moisture": {
+      "0": "Dry",
+      "1": "Slightly damp",
+      "2": "Damp",
+      "3": "Noticeably damp",
+      "4": "Wet",
+      "5": "Very wet / condensation"
+    }
   }
 }

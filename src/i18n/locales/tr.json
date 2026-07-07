@@ -5,13 +5,81 @@
     "map": "Harita",
     "more": "Diğer"
   },
+  "common": {
+    "save": "Kaydet",
+    "cancel": "Vazgeç",
+    "archive": "Arşivle"
+  },
+  "db": {
+    "migrationError": "Veritabanı açılırken bir sorun oluştu. Lütfen uygulamayı kapatıp yeniden açın. Sorun sürerse şu mesajı bildirin:"
+  },
   "today": {
     "title": "Bugün",
     "empty": "Henüz yapılacak bir şey yok. Görevler ve hatırlatmalar ileriki adımda gelecek (M4)."
   },
+  "apiaries": {
+    "title": "Arılıklar",
+    "empty": "Henüz arılık yok. Arılık, kovanlarının durduğu yerdir — ilk arılığını aşağıdan oluştur.",
+    "add": "Arılık ekle",
+    "new": "Yeni arılık",
+    "edit": "Arılığı düzenle",
+    "hiveCount_one": "{{count}} kovan",
+    "hiveCount_other": "{{count}} kovan",
+    "name": "Ad",
+    "namePlaceholder": "örn. Köy arılığı",
+    "latitude": "Enlem (isteğe bağlı, ileride hava durumu için)",
+    "longitude": "Boylam (isteğe bağlı)",
+    "notes": "Notlar",
+    "nameRequired": "Lütfen bir ad girin.",
+    "latLngInvalid": "Koordinatlar hatalı görünüyor — enlem -90 ile 90, boylam -180 ile 180 arasında olmalı.",
+    "archiveTitle": "Bu arılık arşivlensin mi?",
+    "archiveMessage": "Listelerden gizlenecek. Geçmişi saklanır — hiçbir şey silinmez.",
+    "archiveBlocked": "Bu arılıkta hâlâ aktif kovan var. Önce onları arşivleyin."
+  },
   "hives": {
-    "title": "Kovanlar",
-    "empty": "Henüz kovan yok. Arılık ve kovan oluşturma bir sonraki adımda gelecek (M2)."
+    "empty": "Burada henüz kovan yok. İlk kovanını aşağıdan ekle.",
+    "add": "Kovan ekle",
+    "new": "Yeni kovan",
+    "edit": "Düzenle",
+    "label": "Etiket",
+    "labelPlaceholder": "örn. K-07",
+    "labelRequired": "Lütfen bir etiket girin.",
+    "type": "Kovan tipi",
+    "notes": "Notlar",
+    "archiveTitle": "Bu kovan arşivlensin mi?",
+    "archiveMessage": "Listelerden gizlenecek. Geçmişi saklanır — hiçbir şey silinmez."
+  },
+  "hiveType": {
+    "langstroth": {
+      "label": "Langstroth (standart)",
+      "desc": "Türkiye'de ve dünyada en yaygın kovan: üst üste katlar ve çıkarılabilir çerçeveler. Dükkândan aldıysan büyük ihtimalle budur."
+    },
+    "dadant": {
+      "label": "Dadant",
+      "desc": "Langstroth'a benzer ama kuluçkalığı daha büyük ve derindir — ana arı tek büyük gövdede yumurtlar. Soğuk iklimlerde yaygın."
+    },
+    "top_bar": {
+      "label": "Üst çıtalı (top-bar)",
+      "desc": "Uzun, yatay bir kovan. Arılar peteği tahta çıtalardan aşağı sarkıtarak örer — çerçeve ve kat yoktur."
+    },
+    "warre": {
+      "label": "Warré",
+      "desc": "Küçük kare katlardan oluşan kule kovan; yeni katlar alttan eklenir. Az müdahale ister."
+    },
+    "traditional": {
+      "label": "Kara kovan (geleneksel)",
+      "desc": "Sabit petekli kovanlar — kütük veya sepet. Petek kontrol için çıkarılamaz."
+    },
+    "other": {
+      "label": "Diğer",
+      "desc": "Yukarıdakilere uymayan her şey."
+    },
+    "standard": { "label": "Langstroth (standart)", "desc": "" }
+  },
+  "status": {
+    "healthy": "Sağlıklı",
+    "warning": "Yakında bak",
+    "urgent": "Acil"
   },
   "map": {
     "title": "Harita",
@@ -27,6 +95,101 @@
     "languageTurkish": "Türkçe",
     "languageEnglish": "English",
     "about": "Beearc — ücretsiz, açık kaynak, çevrimdışı öncelikli arıcılık.",
-    "version": "Sürüm"
+    "version": "Sürüm",
+    "devSeed": "Örnek veri yükle (dev)",
+    "devSeedDone": "Örnek arılık ve kovanlar oluşturuldu.",
+    "devSeedSkipped": "Veritabanı boş değil — hiçbir şey değiştirilmedi."
+  },
+  "inspections": {
+    "new": "Yeni kontrol",
+    "add": "Kontrol ekle",
+    "timeline": "Kontroller",
+    "timelineEmpty": "Henüz kontrol yok. İlk kontrolünü aşağıdan kaydet — bir dakikadan kısa sürer.",
+    "factorsTitle": "Neleri kontrol ettin?",
+    "factorsHint": "Ana arı ve yumurta her zaman sorulur — iki dokunuş sürer ve uyarıları çalıştırır. Seçimin bir sonraki sefer için hatırlanır.",
+    "factorBrood": "Yavru",
+    "factorBroodDesc": "Yavrunun sağlığı: larva durumu ve kapalı yavru düzeninin ne kadar düzgün olduğu.",
+    "factorStores": "Stok",
+    "factorStoresDesc": "Yiyecek durumu: kolonide ne kadar bal ve polen var.",
+    "factorCondition": "Koloni ve kovan durumu",
+    "factorConditionDesc": "Koloninin gücü (çerçeveleri kaplayan arı) ve kovan içindeki nem.",
+    "factorVarroa": "Varroa sayımı",
+    "factorVarroaDesc": "Akar sayımı — gözle, yapışkan taban, alkol yıkama veya pudra şekeri. Zaman alır; saymadıysan atla.",
+    "factorPests": "Zararlılar ve hastalık",
+    "factorPestsDesc": "Kovan böceği, mum güvesi ve yavruda ya da arılarda hastalık belirtileri.",
+    "factorTemperament": "Huy",
+    "factorTemperamentDesc": "Çalışırken arılar ne kadar sakin ya da saldırgandı.",
+    "continue": "Devam",
+    "queenSeen": "Ana arı görüldü",
+    "eggsSeen": "Yumurta görüldü",
+    "larvae": "Larva durumu",
+    "brood": "Yavru düzeni",
+    "honey": "Bal stoku",
+    "pollen": "Polen stoku",
+    "varroa": "Varroa",
+    "varroaCount": "Varroa sayısı (akar)",
+    "varroaCountPlaceholder": "örn. 12",
+    "varroaMethod": "Sayım yöntemi",
+    "varroaInvalid": "Varroa sayısı tam sayı olmalı (0 veya daha fazla).",
+    "temperament": "Huy",
+    "beeDensity": "Arı yoğunluğu",
+    "moisture": "Kovan içi nem",
+    "beetlesSeen": "Kovan böceği görüldü",
+    "waxMothSeen": "Mum güvesi görüldü",
+    "diseaseSignsSeen": "Hastalık belirtisi",
+    "note": "Not (isteğe bağlı)",
+    "notePlaceholder": "Hatırlamaya değer bir şey…",
+    "save": "Kontrolü kaydet",
+    "notRecorded": "Kaydedilmedi",
+    "yes": "Evet",
+    "no": "Hayır"
+  },
+  "varroaMethod": {
+    "visual": "Gözle sayım",
+    "sticky_board": "Yapışkan taban",
+    "alcohol_wash": "Alkol yıkama",
+    "sugar_roll": "Pudra şekeri yöntemi"
+  },
+  "rating": {
+    "quality": {
+      "0": "Yok",
+      "1": "Çok kötü",
+      "2": "Kötü",
+      "3": "Orta",
+      "4": "İyi",
+      "5": "Çok iyi"
+    },
+    "stores": {
+      "0": "Boş",
+      "1": "Çok az",
+      "2": "Az",
+      "3": "Orta",
+      "4": "İyi",
+      "5": "Dolu"
+    },
+    "temperament": {
+      "0": "Çok saldırgan",
+      "1": "Saldırgan",
+      "2": "Huzursuz",
+      "3": "Orta",
+      "4": "Sakin",
+      "5": "Çok sakin"
+    },
+    "density": {
+      "0": "Çok zayıf",
+      "1": "Zayıf",
+      "2": "Ortanın altı",
+      "3": "Orta",
+      "4": "Güçlü",
+      "5": "Çok güçlü"
+    },
+    "moisture": {
+      "0": "Kuru",
+      "1": "Hafif nemli",
+      "2": "Nemli",
+      "3": "Belirgin nemli",
+      "4": "Islak",
+      "5": "Çok ıslak / yoğuşma"
+    }
   }
 }
