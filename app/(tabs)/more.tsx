@@ -1,5 +1,7 @@
-import { Alert, StyleSheet, Text } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Constants from 'expo-constants';
 import { EmptyState, Screen } from '@/src/components/Screen';
 import { OptionRow } from '@/src/components/OptionRow';
@@ -13,6 +15,7 @@ import { sizes, sp } from '@/src/theme/tokens';
 export default function MoreScreen() {
   const { t, i18n } = useTranslation();
   const { tokens } = useTheme();
+  const router = useRouter();
   const themeMode = useSettings((s) => s.themeMode);
   const setThemeMode = useSettings((s) => s.setThemeMode);
 
@@ -50,6 +53,21 @@ export default function MoreScreen() {
         ]}
       />
 
+      <Text style={[styles.sectionHeader, { color: tokens.textMuted }]}>
+        {t('more.assistant')}
+      </Text>
+      <TouchableOpacity
+        accessibilityRole="button"
+        onPress={() => router.push('/rules-settings')}
+        style={[styles.navRow, { backgroundColor: tokens.surface, borderColor: tokens.border }]}
+      >
+        <MaterialCommunityIcons name="tune" size={24} color={tokens.text} />
+        <Text style={[styles.navRowLabel, { color: tokens.text }]}>
+          {t('rulesSettings.title')}
+        </Text>
+        <MaterialCommunityIcons name="chevron-right" size={24} color={tokens.textMuted} />
+      </TouchableOpacity>
+
       <EmptyState
         message={`${t('more.about')}\n${t('more.version')} ${Constants.expoConfig?.version ?? '?'}`}
       />
@@ -71,4 +89,14 @@ const styles = StyleSheet.create({
     marginTop: sp(6),
     marginBottom: sp(2),
   },
+  navRow: {
+    minHeight: sizes.tapMin,
+    borderRadius: sizes.radius,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: sp(2),
+    paddingHorizontal: sp(3),
+  },
+  navRowLabel: { flex: 1, fontSize: sizes.fontBody, fontWeight: '600' },
 });

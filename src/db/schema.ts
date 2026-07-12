@@ -172,6 +172,8 @@ export const tasks = sqliteTable('tasks', {
   details: text('details'),
   dueAt: text('due_at').notNull(),
   doneAt: text('done_at'),
+  /** Soft delete (swipe-to-delete, M4b) — same "never lose history" rule as §6. */
+  deletedAt: text('deleted_at'),
   source: text('source').notNull().default('manual'),
   createdAt: text('created_at').notNull(),
 });

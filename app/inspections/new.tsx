@@ -13,6 +13,7 @@ import { PrimaryButton } from '@/src/components/PrimaryButton';
 import { inspectionsRepo } from '@/src/db/repos/inspectionsRepo';
 import { hivesRepo, type Hive } from '@/src/db/repos/hivesRepo';
 import { SETTING_KEYS, settingsRepo } from '@/src/db/repos/settingsRepo';
+import { applyInspectionRules } from '@/src/logic/status';
 import { useTheme } from '@/src/theme/useTheme';
 import { sizes, sp } from '@/src/theme/tokens';
 
@@ -141,7 +142,10 @@ export default function NewInspectionScreen() {
       <InspectionForm
         factors={factors}
         onSubmit={async (input) => {
-          await inspectionsRepo.create(hiveId, input);
+          const saved = await inspectionsRepo.create(hiveId, input);
+          // M4: the assistant reads the fresh inspection — it may create
+          // tasks (R3/R4/R5) and recolor the hive before we're back.
+          await applyInspectionRules(saved);
           // No success popup: back to the hive, where the new entry is visible.
           router.back();
         }}

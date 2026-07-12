@@ -30,4 +30,8 @@ export const SETTING_KEYS = {
   language: 'language',
   /** JSON array of InspectionFactor — the factor picker remembers your last choice. */
   inspectionFactors: 'inspection_factors',
+  /** JSON partial of RuleSettings — user overrides merged over the defaults. */
+  ruleSettings: 'rule_settings',
+  /** '1' once the one-time swipe-gesture hint on Today was dismissed. */
+  swipeHintSeen: 'swipe_hint_seen',
 } as const;

@@ -1,0 +1,169 @@
+import { and, asc, desc, eq, gte, isNotNull, isNull, like } from 'drizzle-orm';
+import { db } from '../client';
+import { apiaries, hives, tasks } from '../schema';
+import { newId, nowIso } from '../util';
+
+export type Task = typeof tasks.$inferSelect;
+
+/** A task plus the names of whatever it's linked to — for the Today list. */
+export interface TaskWithRefs extends Task {
+  hiveLabel: string | null;
+  apiaryName: string | null;
+}
+
+export interface TaskInput {
+  title: string;
+  details?: string | null;
+  dueAt: string;
+  hiveId?: string | null;
+  apiaryId?: string | null;
+  /** 'manual' or 'rule:<id>' (§6). Screens never pass rule sources themselves. */
+  source?: string;
+}
+
+/** What editing may change. Rule tasks: the UI locks title + links (M4b). */
+export interface TaskUpdateInput {
+  title: string;
+  details?: string | null;
+  dueAt: string;
+  hiveId?: string | null;
+  apiaryId?: string | null;
+}
+
+const withRefs = {
+  task: tasks,
+  hiveLabel: hives.label,
+  apiaryName: apiaries.name,
+};
+
+const flatten = (rows: { task: Task; hiveLabel: string | null; apiaryName: string | null }[]) =>
+  rows.map((r) => ({ ...r.task, hiveLabel: r.hiveLabel, apiaryName: r.apiaryName }));
+
+export const tasksRepo = {
+  /** All open (not done) tasks, soonest first — the Today screen's backbone. */
+  async listOpen(): Promise<TaskWithRefs[]> {
+    const rows = await db
+      .select(withRefs)
+      .from(tasks)
+      .leftJoin(hives, eq(tasks.hiveId, hives.id))
+      .leftJoin(apiaries, eq(tasks.apiaryId, apiaries.id))
+      .where(and(isNull(tasks.doneAt), isNull(tasks.deletedAt)))
+      .orderBy(asc(tasks.dueAt));
+    return flatten(rows);
+  },
+
+  /** Tasks completed since `sinceIso` (used for the "Done today" section). */
+  async listDoneSince(sinceIso: string): Promise<TaskWithRefs[]> {
+    const rows = await db
+      .select(withRefs)
+      .from(tasks)
+      .leftJoin(hives, eq(tasks.hiveId, hives.id))
+      .leftJoin(apiaries, eq(tasks.apiaryId, apiaries.id))
+      .where(
+        and(isNotNull(tasks.doneAt), gte(tasks.doneAt, sinceIso), isNull(tasks.deletedAt))
+      )
+      .orderBy(desc(tasks.doneAt));
+    return flatten(rows);
+  },
+
+  /** Everything ever completed (and not deleted), newest first — History. */
+  async listHistory(limit = 200): Promise<TaskWithRefs[]> {
+    const rows = await db
+      .select(withRefs)
+      .from(tasks)
+      .leftJoin(hives, eq(tasks.hiveId, hives.id))
+      .leftJoin(apiaries, eq(tasks.apiaryId, apiaries.id))
+      .where(and(isNotNull(tasks.doneAt), isNull(tasks.deletedAt)))
+      .orderBy(desc(tasks.doneAt))
+      .limit(limit);
+    return flatten(rows);
+  },
+
+  async getById(id: string): Promise<Task | null> {
+    const rows = await db.select().from(tasks).where(eq(tasks.id, id));
+    return rows[0] ?? null;
+  },
+
+  async create(input: TaskInput): Promise<Task> {
+    const row: Task = {
+      id: newId(),
+      hiveId: input.hiveId ?? null,
+      apiaryId: input.apiaryId ?? null,
+      title: input.title.trim(),
+      details: input.details?.trim() || null,
+      dueAt: input.dueAt,
+      doneAt: null,
+      deletedAt: null,
+      source: input.source ?? 'manual',
+      createdAt: nowIso(),
+    };
+    await db.insert(tasks).values(row);
+    return row;
+  },
+
+  async update(id: string, input: TaskUpdateInput): Promise<void> {
+    await db
+      .update(tasks)
+      .set({
+        title: input.title.trim(),
+        details: input.details?.trim() || null,
+        dueAt: input.dueAt,
+        hiveId: input.hiveId ?? null,
+        apiaryId: input.apiaryId ?? null,
+      })
+      .where(eq(tasks.id, id));
+  },
+
+  /** Soft delete (M4b) — hidden everywhere, kept forever, like §6 archives. */
+  async softDelete(id: string): Promise<void> {
+    await db.update(tasks).set({ deletedAt: nowIso() }).where(eq(tasks.id, id));
+  },
+
+  /** Check-off and un-check-off. Status recompute happens in logic/status.ts. */
+  async setDone(id: string, done: boolean): Promise<void> {
+    await db
+      .update(tasks)
+      .set({ doneAt: done ? nowIso() : null })
+      .where(eq(tasks.id, id));
+  },
+
+  /**
+   * Sources ('rule:R3', …) of a hive's open rule tasks — the exact input
+   * deriveHiveStatus needs. Manual tasks are excluded by the LIKE filter.
+   */
+  async listOpenRuleSourcesByHive(hiveId: string): Promise<string[]> {
+    const rows = await db
+      .select({ source: tasks.source })
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.hiveId, hiveId),
+          isNull(tasks.doneAt),
+          isNull(tasks.deletedAt),
+          like(tasks.source, 'rule:%')
+        )
+      );
+    return rows.map((r) => r.source);
+  },
+
+  /**
+   * Duplicate guard: is there already an open task from this rule for this
+   * hive? Logging two bad inspections in a row must not create two identical
+   * "recheck queen" tasks.
+   */
+  async hasOpenBySource(hiveId: string, source: string): Promise<boolean> {
+    const rows = await db
+      .select({ id: tasks.id })
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.hiveId, hiveId),
+          eq(tasks.source, source),
+          isNull(tasks.doneAt),
+          isNull(tasks.deletedAt)
+        )
+      )
+      .limit(1);
+    return rows.length > 0;
+  },
+};

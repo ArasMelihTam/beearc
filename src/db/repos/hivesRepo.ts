@@ -1,6 +1,6 @@
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import { db } from '../client';
-import { hives, type HiveType } from '../schema';
+import { hives, type HiveStatus, type HiveType } from '../schema';
 import { newId, nowIso } from '../util';
 
 export type Hive = typeof hives.$inferSelect;
@@ -53,6 +53,19 @@ export const hivesRepo = {
         notes: input.notes?.trim() || null,
       })
       .where(eq(hives.id, id));
+  },
+
+  /** Every active hive across all apiaries — for the global status recompute. */
+  async listAllActive(): Promise<Hive[]> {
+    return db.select().from(hives).where(isNull(hives.archivedAt));
+  },
+
+  /**
+   * ONLY the rules engine (src/logic/status.ts) may call this — status is
+   * derived (§7). No screen sets a status, ever.
+   */
+  async updateStatus(id: string, status: HiveStatus): Promise<void> {
+    await db.update(hives).set({ status }).where(eq(hives.id, id));
   },
 
   /** Soft delete — inspection history stays forever. */

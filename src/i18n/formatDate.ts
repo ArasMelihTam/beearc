@@ -12,3 +12,9 @@ export function formatDateTime(iso: string): string {
   const locale = i18n.language.startsWith('tr') ? tr : enUS;
   return format(new Date(iso), 'd MMMM yyyy HH:mm', { locale });
 }
+
+/** Date only, with weekday — task due dates read naturally ("Sal, 14 Temmuz"). */
+export function formatDueDate(iso: string): string {
+  const locale = i18n.language.startsWith('tr') ? tr : enUS;
+  return format(new Date(iso), 'EEE, d MMMM', { locale });
+}

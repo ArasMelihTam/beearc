@@ -15,7 +15,53 @@
   },
   "today": {
     "title": "Bugün",
-    "empty": "Henüz yapılacak bir şey yok. Görevler ve hatırlatmalar ileriki adımda gelecek (M4)."
+    "empty": "Her şey tamam. Sen ya da asistan görev oluşturunca burada görünür.",
+    "overdue": "Geciken",
+    "dueToday": "Bugün",
+    "upcoming": "Yaklaşan",
+    "doneToday": "Bugün tamamlanan",
+    "addTask": "Görev ekle",
+    "swipeHint": "Bir görevi düzenlemek için sola kaydır. Silmek için sağa kaydır. Tamamlamak için yuvarlağa dokun — geri almak için tekrar dokun.",
+    "swipeHintGotIt": "Anladım"
+  },
+  "tasks": {
+    "new": "Yeni görev",
+    "titleLabel": "Ne yapılacak?",
+    "titlePlaceholder": "örn. İki eski çerçeveyi değiştir",
+    "titleRequired": "Lütfen bir başlık girin.",
+    "details": "Ayrıntılar (isteğe bağlı)",
+    "dueLabel": "Tarih",
+    "dueToday": "Bugün",
+    "dueTomorrow": "Yarın",
+    "dueIn3": "3 gün sonra",
+    "dueIn7": "1 hafta sonra",
+    "minusDay": "Bir gün öne al",
+    "plusDay": "Bir gün ertele",
+    "linkLabel": "Kovanlara bağla (isteğe bağlı)",
+    "multiHint": "{{count}} kovan seçildi — her biri ayrı görev olur, böylece tek tek işaretleyebilirsin.",
+    "save": "Görevi kaydet",
+    "edit": "Görevi düzenle",
+    "delete": "Sil",
+    "history": "Görev geçmişi",
+    "historyEmpty": "Henüz tamamlanan görev yok. İşaretlenen görevler gece yarısına kadar Bugün'de kalır, sonra buraya taşınır.",
+    "ruleLocked": "Asistan oluşturdu — başlık ve kovan sabittir. Tarihi değiştirebilir veya ayrıntı ekleyebilirsin."
+  },
+  "rules": {
+    "R1": "Ballık doluluğunu kontrol et",
+    "R2_END": "İlaçlamayı bitir / çıkar",
+    "R2_RECOUNT": "İlaçlama sonrası varroa sayımı",
+    "R3": "Ana arıyı / yumurtayı tekrar kontrol et",
+    "R4": "Varroa mücadelesi planla",
+    "R5": "Beslemeyi kontrol et"
+  },
+  "rulesSettings": {
+    "title": "Asistan kuralları",
+    "hint": "Asistan, kontrollerini okuyup görevleri ve kovan uyarılarını kendisi oluşturur. Sınırlarını buradan ayarlayabilirsin. Aktif sezon her arılığın konumuna göre otomatik belirlenir.",
+    "varroaSeasonPct": "Sezonda varroa alarmı (%, yıkama/şeker)",
+    "varroaPreWinterPct": "Kış öncesi varroa alarmı (%)",
+    "stickyBoardPerDay": "Yapışkan taban alarmı (akar/gün)",
+    "inspectionOverdueDays": "Şu kadar gün kontrol yoksa hatırlat (gün)",
+    "invalid": "Lütfen sıfırdan büyük sayılar girin."
   },
   "apiaries": {
     "title": "Arılıklar",
@@ -94,6 +140,7 @@
     "language": "Dil",
     "languageTurkish": "Türkçe",
     "languageEnglish": "English",
+    "assistant": "Asistan",
     "about": "Beearc — ücretsiz, açık kaynak, çevrimdışı öncelikli arıcılık.",
     "version": "Sürüm",
     "devSeed": "Örnek veri yükle (dev)",

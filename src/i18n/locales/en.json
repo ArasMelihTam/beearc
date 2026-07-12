@@ -15,7 +15,53 @@
   },
   "today": {
     "title": "Today",
-    "empty": "Nothing to do yet. Tasks and reminders arrive in a later step (M4)."
+    "empty": "All caught up. When you or the assistant create tasks, they show up here.",
+    "overdue": "Overdue",
+    "dueToday": "Today",
+    "upcoming": "Upcoming",
+    "doneToday": "Done today",
+    "addTask": "Add task",
+    "swipeHint": "Swipe a task to the left to edit it. Swipe right to delete. Tap the circle to mark it done — tap again to undo.",
+    "swipeHintGotIt": "Got it"
+  },
+  "tasks": {
+    "new": "New task",
+    "titleLabel": "What needs doing?",
+    "titlePlaceholder": "e.g. Replace two old frames",
+    "titleRequired": "Please enter a title.",
+    "details": "Details (optional)",
+    "dueLabel": "Due",
+    "dueToday": "Today",
+    "dueTomorrow": "Tomorrow",
+    "dueIn3": "In 3 days",
+    "dueIn7": "In a week",
+    "minusDay": "One day earlier",
+    "plusDay": "One day later",
+    "linkLabel": "Link to hives (optional)",
+    "multiHint": "{{count}} hives selected — each gets its own task, so you can check them off one by one.",
+    "save": "Save task",
+    "edit": "Edit task",
+    "delete": "Delete",
+    "history": "Task history",
+    "historyEmpty": "Nothing completed yet. Checked-off tasks stay on Today until midnight, then move here.",
+    "ruleLocked": "Created by the assistant — the title and hive are fixed. You can move the date or add details."
+  },
+  "rules": {
+    "R1": "Check super fill progress",
+    "R2_END": "End / remove treatment",
+    "R2_RECOUNT": "Post-treatment varroa recount",
+    "R3": "Recheck for queen/eggs",
+    "R4": "Plan varroa treatment",
+    "R5": "Check feeding"
+  },
+  "rulesSettings": {
+    "title": "Assistant rules",
+    "hint": "The assistant reads your inspections and creates tasks and hive alerts by itself. You can tune its limits here. The active season is set automatically from each apiary's location.",
+    "varroaSeasonPct": "Varroa alarm in season (%, wash/roll)",
+    "varroaPreWinterPct": "Varroa alarm before winter (%)",
+    "stickyBoardPerDay": "Sticky board alarm (mites per day)",
+    "inspectionOverdueDays": "Remind when not inspected for (days)",
+    "invalid": "Please enter numbers greater than zero."
   },
   "apiaries": {
     "title": "Apiaries",
@@ -94,6 +140,7 @@
     "language": "Language",
     "languageTurkish": "Türkçe",
     "languageEnglish": "English",
+    "assistant": "Assistant",
     "about": "Beearc — free, open-source, offline-first beekeeping.",
     "version": "Version",
     "devSeed": "Load sample data (dev)",

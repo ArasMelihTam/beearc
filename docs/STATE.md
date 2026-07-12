@@ -2,11 +2,13 @@
 
 > Update this file at the end of every session so the next session resumes with zero context loss.
 
-**Last updated:** 2026-07-07
+**Last updated:** 2026-07-12
 
 ## Current milestone
 
-**M3 — Inspection flow: ✅ DONE** (accepted on device 2026-07-07). Next up: **M4 — Rules engine & Today screen**.
+**M4 + M4b: ✅ DONE, accepted on device 2026-07-12** (incl. two device-found fixes: mirrored swipe directions, iOS notification nil-body crash). Committed as one commit. Next up: **M5 — Queens & treatments + transfers** (see "Then (M5...)" below — first session should ask the user the open judgment calls listed there, incl. confirming R4 due +2 days).
+
+**NOTE: development moves to Claude Code from here (2026-07-12).** AGENTS.md contains the session workflow; this file + docs/MASTER_PROMPT.md (local-only, gitignored) remain the source of truth for state and spec.
 
 ## Done
 
@@ -53,14 +55,39 @@
 - date-fns added (pre-approved §4); `src/i18n/formatDate.ts` formats ISO timestamps in the active locale (tr/enUS).
 - Verified off-device: `tsc --noEmit` clean (after typed-routes regen), en/tr key sets identical, all used dotted i18n keys present, migration chain 0000→0001 applies cleanly in real SQLite.
 
-## Next (M4 — Rules engine & Today screen)
+### M4 — Rules engine & Today screen ✅ code complete (2026-07-07, device acceptance pending)
 
-- [ ] Rules engine as data in `src/logic/rules.ts` (§7 R1–R6) + Jest tests (first test setup in the project)
-- [ ] Derived hive status recomputed after every inspection/task change (stored, never hand-set)
-- [ ] Today tab: overdue/today/upcoming tasks, check-off, manual task creation
-- [ ] Local notifications for due tasks (expo-notifications — pre-approved §4)
-- [ ] Beekeeping judgment calls (rule 7): varroa thresholds (default >3% in season, >1% pre-winter), rule task timings, "in season" definition for R6's 21-day rule
-- [ ] Acceptance: logging "no queen, no eggs" auto-creates recheck task + hive turns urgent
+- Judgment calls confirmed by user (rule 7): varroa % applies to **wash/roll only** (% = count÷3, ≈300-bee sample); sticky board has its own threshold (>10 mites/day); visual counts never auto-trigger. Season/pre-winter windows are **hemisphere-aware from apiary latitude** (N: Mar–Oct / Aug–Oct; S: Sep–Apr / Feb–Apr; no latitude → northern) because the app is global — all editable via settings. R2 durations: formic 14d, oxalic 1d, thymol 28d, amitraz 42d, other = none. NOT yet user-confirmed: R4 task due +2 days (my default — ask).
+- `src/logic/rules.ts` — PURE rules engine: R1–R6 as data (RULE_DEFS: severity + canonical EN title) + trigger functions (`evaluateInspection` R3/R4/R5, `evaluateEquipmentAdded` R1, `evaluateTreatmentStarted/Ended` R2) + `deriveHiveStatus` (open rule tasks → severity; R6 time-based, baseline = last inspection or hive createdAt; urgent > warning). Task ids: R1, R2_END, R2_RECOUNT, R3, R4, R5. Due times land at 09:00 local (`dueInDays`).
+- `src/logic/status.ts` — impure half: `getRuleSettings(latitude)` (JSON overrides in settings key `rule_settings` merged over hemisphere defaults), `applyInspectionRules` (called by inspection save), `recomputeHiveStatus` / `recomputeAllHiveStatuses` (Today focus — keeps R6 honest), `setTaskDone` (check-off + notification cancel + status recompute). R1/R2 trigger functions exist + are tested but get UI entry points in M5.
+- `src/db/repos/tasksRepo.ts` — listOpen/listDoneSince (join hive label + apiary name), create, setDone, listOpenRuleSourcesByHive, hasOpenBySource (duplicate guard: same rule never stacks two open tasks on one hive).
+- hivesRepo: + `listAllActive`, `updateStatus` (rules engine only!). inspectionsRepo: + `latestByHive`.
+- Jest: jest **29.7.0 pinned** + ts-jest + @types/jest 29 (devDeps), `jest.config.js` preset ts-jest, tests only in `src/logic/`. **29 tests green.** `npm test`. WHY 29: react-native ships jest-environment-node@29, npm hoists it, jest 30 then crashes with `clearMocksOnScope is not a function` — do NOT bump to 30.
+- Today tab (`app/(tabs)/index.tsx`): SectionList overdue/today/upcoming/done-today, 56dp check rows, check-off with un-check (done-today section), Add task button. Rule task titles translated at render via `displayTaskTitle` (stored title = canonical EN for future CSV export).
+- `app/tasks/new.tsx`: title/details, due via chips (today/tomorrow/+3/+1w) + ±1 day stepper (default tomorrow, no calendar picker dep), optional apiary→hive chip link.
+- `app/rules-settings.tsx` (More → Assistant): 4 editable thresholds, comma decimals OK, stores only overrides.
+- `src/notifications/taskNotifications.ts`: expo-notifications ~0.32.17, LOCAL only, notification identifier = task id (cancel without lookup), lazy permission ask on first schedule, Android channel 'tasks', skips past-due. **GOTCHA (device-found iOS crash):** never pass `undefined` for optional native fields (body, channelId) — OMIT them ("Cannot cast 'nil' for field 'body'"). schedule/cancel are wrapped in try/catch: a failed reminder must never break saving a task.
+- Verified off-device: `tsc --noEmit` clean, 29/29 Jest green, en/tr key parity, all 94 used i18n keys present, eslint (only 2 pre-existing M1 warnings + 1 pre-existing display-name error in tabs/_layout — untouched).
+- Deleted `app-example/` (gitignored starter leftover — it broke tsc).
+
+### M4b — Task management ✅ code complete (2026-07-11, device acceptance pending — user asked to build before M4 acceptance, so test M4+M4b together)
+
+- Multi-hive task creation: `MultiChipPicker` in app/tasks/new.tsx → ONE TASK PER HIVE (independent check-off; rules/status engine untouched). No hive selected → apiary link or free-floating, as before.
+- Task editing: tap a task row → `app/tasks/[id]/edit.tsx`. Manual tasks fully editable; RULE tasks lock title + hive (they ARE the tracked condition) — only due date + details editable. `DueDayPicker` extracted (chips + ±1 day stepper, `fixedLabel` keeps the current date until touched).
+- Swipe gestures (user decisions, revised twice 2026-07-11; final direction wording CONFIRMED ON DEVICE by user): as experienced in hand, **swipe LEFT = edit, opens directly** past the threshold, NO button (honey-gold pencil panel is visual feedback only; row auto-closes via ref); **swipe RIGHT = delete**, revealed slate button kept deliberately (destructive → one confirming tap; white text light / dark-umber text dark — terracotta+white failed WCAG AA). Editing is SWIPE-ONLY — tap-to-edit removed (user decision: accidental glove taps). One-time dismissible gesture hint card on Today (settings key `swipe_hint_seen`). Rows are a `TaskRow` component (each holds its own Swipeable ref). **GOTCHA (device-found bug):** in this gesture-handler version, ReanimatedSwipeable's `onSwipeableOpen` direction = PHYSICAL swipe direction ('right' = swiped right), NOT the panel side — verified in lib/module/components/ReanimatedSwipeable.js (`toValue > 0 ? RIGHT : LEFT`). Soft delete via new `tasks.deleted_at` (migration **0002**, SCHEMA_VERSION **3**). Deleting an open rule task = dismissing the condition (hive may recolor); next inspection may recreate it.
+- Check/uncheck: circle toggles both ways; done tasks stay in "Done today" until midnight, then live in **Task history** (clock icon top-right on Today) — history also allows uncheck → task returns to Today.
+- `GestureHandlerRootView` added to app/_layout.tsx (required for swipe; gesture-handler was already a dep — no new packages).
+- status.ts: + `deleteTask`, `updateTask` (cancel/reschedule notification, recompute old+new hive). tasksRepo: + `update`, `softDelete`, `listHistory`, deleted-filter on every query.
+- Verified: tsc clean, 29/29 tests, en/tr parity, migration chain 0000→0002 in real SQLite (python3 sqlite3).
+
+## Then (M5 — Queens & treatments + transfers)
+
+- [ ] Queen tracker: age auto-computed from introduced_at, origin, mark color, 1–5 stars, replacement history
+- [ ] Treatment log with "last treatment" warning when adding a new one
+- [ ] Wire R2 (treatment start/end) and R1 (equipment) to their new screens — trigger functions already exist + tested in src/logic/rules.ts
+- [ ] Equipment list per hive
+- [ ] NEW (user request 2026-07-07) — hive-to-hive transfers table + migration: from_hive_id, to_hive_id, item (brood_frame/honey_frame/pollen_frame/empty_comb/super/feeder/queen_cell/other), quantity, transferred_at, notes. Shows in BOTH hives' histories (donor "gave" / receiver "received"). Covers equalizing, boosting nucs, swarm prevention.
+- [ ] Beekeeping judgment calls (rule 7): queen mark color conventions (international 5-color cycle?), treatment products TR terminology, confirm R4 due +2 days from M4, transfer item list wording (TR+EN)
 
 ## Decisions log
 
@@ -75,6 +102,14 @@
 - Coordinates input accepts comma decimals (Turkish keyboards)
 - Hive types (user decision, rule 7 — revised twice): full list `langstroth/dadant/top_bar/warre/traditional/other`, picked via `HiveTypePicker` — full-width cards with an always-visible plain-language description per type (TR+EN), instead of bare jargon names or tiny info buttons. `traditional` = kara kovan. Legacy `standard` i18n key kept for old dev rows. No SQL migration needed (text column, enum is TS-only).
 - Hive type illustrations (user request): original schematic PNGs in `assets/hive-types/` (6 types × light/dark, ~2 KB each), drawn for the project → GPLv3, zero license/attribution issues. Source SVGs generated via scripts kept out of repo; regenerate by asking Claude or editing PNGs directly.
+- M4: docs/MASTER_PROMPT.md is gitignored (contains personal details; repo is public). Keep it local-only.
+- M4: varroa % thresholds apply to wash/roll only; sticky board = mites/day; visual never triggers (user decision)
+- M4: season windows hemisphere-aware from apiary latitude, editable (user decision — global app)
+- M4: R1/R2 reminders never color a hive; only R3/R4 (urgent) and R5/R6 (warning) do
+- M4: rule task titles stored in canonical English, translated at render via source (`rule:<id>`)
+- M4: jest pinned to 29.7.0 (react-native hoists jest-environment-node@29 — jest 30 breaks; see M4 section)
+- Multi-hive operations (user request 2026-07-07): multi-select tasks = M4b add-on; hive→hive transfer log = M5; transfers capture what+quantity, both-directions history, reason note, non-frame items too
+- User flagged rich note-taking as important ("I need to remember a lot"). v1 = free-text notes everywhere; a proper note system (search across notes? tags?) is a post-v1 discussion — revisit at M11 planning
 
 ## Known bugs
 
@@ -82,14 +117,13 @@
 
 ## Notes for next session
 
-- M2 committed 2026-07-07. M3 commit (after device acceptance):
-  `feat(inspections): M3 rapid-entry inspection flow, hive detail timeline`
+- M2+M3 were committed TOGETHER on 2026-07-07 (`ddde0d1` — the separate "M2 commit" recorded earlier never actually happened; working tree had both). assets/hive-types/ is included.
+- M4 commit (after device acceptance): `feat(assistant): M4 rules engine, Today screen, tasks, local notifications`
+- User must run `npm install` on the Mac before testing M4 (new deps: expo-notifications, jest toolchain) — then `npx expo start -c`
 - Terminal gotcha (happened once): user ran npm/expo commands in `~` instead of the project folder — always `cd ~/dev/beearc` first
-- Metro gotcha (2026-07-07): hive-type PNGs "disappeared" on device after the M3 changes — files were fine, stale Metro cache. Fix: `npx expo start -c` and scan the QR fresh
-- `assets/hive-types/` was still untracked at last check — make sure the M3 commit includes it
-- After every schema change: `npm run db:generate` (runs drizzle-kit + build-migrations.mjs), bump `SCHEMA_VERSION` in `src/db/DbProvider.tsx`
+- Metro gotcha (2026-07-07): stale Metro cache made asset PNGs "disappear" — fix: `npx expo start -c` and scan the QR fresh
+- After every schema change: `npm run db:generate` (runs drizzle-kit + build-migrations.mjs), bump `SCHEMA_VERSION` in `src/db/DbProvider.tsx` (still 2 — M4 needed no schema change, tasks table existed since 0000)
 - Typed-routes errors in the editor disappear after `npx expo start` regenerates `.expo/types`
-- M3 will reroute hive taps from edit screen to a new hive detail screen (timeline) — keep edit reachable from there
-- User (beekeeper, TR domain expert) verifies all new Turkish beekeeping terminology each milestone
-- Everything must keep running in plain Expo Go until M9 (dev build)
+- User (beekeeper, TR domain expert) verifies all new Turkish beekeeping terminology each milestone — M4 TR strings not yet device-verified
+- Everything must keep running in plain Expo Go until M9 (dev build). Note: local notifications work in Expo Go; only remote push was removed (SDK 53+, Android)
 - Working rules: one milestone at a time, complete files, ask before new deps, airplane-mode test, conventional commits, update this file every session

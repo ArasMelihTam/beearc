@@ -39,6 +39,17 @@ export const inspectionsRepo = {
       .orderBy(desc(inspections.inspectedAt));
   },
 
+  /** Newest inspection only — R6 (neglect warning) just needs one date. */
+  async latestByHive(hiveId: string): Promise<Inspection | null> {
+    const rows = await db
+      .select()
+      .from(inspections)
+      .where(eq(inspections.hiveId, hiveId))
+      .orderBy(desc(inspections.inspectedAt))
+      .limit(1);
+    return rows[0] ?? null;
+  },
+
   async create(hiveId: string, input: InspectionInput): Promise<Inspection> {
     const now = nowIso();
     const row: Inspection = {
