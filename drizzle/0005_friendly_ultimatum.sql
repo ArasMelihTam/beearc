@@ -1,0 +1,1 @@
+ALTER TABLE `inspections` ADD `other_insects_seen` integer;

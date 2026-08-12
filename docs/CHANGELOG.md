@@ -40,6 +40,43 @@ All notable changes to Beearc. Format loosely follows [Keep a Changelog](https:/
 - M4b: Task history screen — done tasks show on Today until midnight, then move to history; uncheck works from both places
 - M4b: One-time swipe-gesture hint card on Today (dismiss with "Got it")
 
+- M5a: Queen tracker per hive — age computed from the introduction date (never stored), origin, 1–5 star productivity, notes, and the full replacement history; introducing a queen retires the previous one automatically
+- M5a: International 5-color marking cycle — the color for the chosen year is suggested automatically (white/yellow/red/green/blue), any color or "unmarked" can still be picked; color is always shown with its name
+- M5a: Treatment log per hive — 8 products (organic acids, thymol, and the synthetic strips), free-text dose, start/end dates, notes; one-tap "end treatment"
+- M5a: "Check the last treatment first" warning shown whenever a new treatment is added (§6 — prevents overdosing and honey residue)
+- M5a: Rule R2 wired up — starting a treatment schedules the "end / remove treatment" reminder for that product's duration; ending it closes that reminder and books the post-treatment varroa recount
+- M5a: Checking off "Plan varroa treatment" (R4) now asks what you decided — record the treatment (pre-filled for that hive) or just mark it done; recording it is what completes the task
+- M5a: Hive detail shows the queen's age and the last treatment at a glance, each opening its own history
+- M5a: Month/year picker for past dates and a "days ago" picker for treatment dates — still no calendar grid (too small for gloves)
+- M5a: 12 more Jest tests covering mark colors and queen age math
+
+- M5c: Prior inspections can now be opened in full, edited, and deleted — same swipe gestures as tasks, tap to view (soft delete via inspections.deleted_at, migration 0003)
+- M5c: Correcting an inspection retracts the alerts it no longer justifies — fixing a mistyped "no queen seen" removes the recheck task and the hive's warning
+- M5c: Inspection cards and detail show how long ago the hive was looked at ("12 days ago", "3 months 12 days ago")
+- M5d: Hive list shows when each hive was last inspected, without opening it
+- M5d: Inspection age is shaded as well as written — sage when you were just there, fading to terracotta once a hive passes your neglect threshold, on the hive list and the timeline
+- M5c/M5d: 21 more Jest tests (50 total) covering mark colors, queen age and elapsed-time math
+
+- M5b: Equipment log per hive — what is on the box now, what has come off, and when; quantity stepper instead of a keyboard, one-tap "Take off"
+- M5b: Rule R1 wired up — putting a super on the hive schedules the "check super fill progress" reminder ten days out
+- M5b: Hive-to-hive transfer log (new `transfers` table, migration 0004) — ONE stored row is one move, read from both ends: the donor's history says "gave", the receiver's says "received", and the two can never disagree
+- M5b: 9 transfer items — frames of brood / honey / pollen, empty comb, super, feeder, queen cell, shaken bees, other
+- M5b: Transfers are recorded from where you are standing ("K-07 gave" / "K-07 received"), other hive picked apiary-first and defaulting to this hive's own apiary
+- M5b: Equipment and transfer entries can be corrected or deleted (soft delete on both); deleting a transfer removes it from both hives at once
+- M5b: Hive detail gained equipment ("2 × Deep super · 1 × Feeder") and last-transfer summary rows
+- M5b: 12 more Jest tests (62 total) covering transfer direction, both-ends round-trip, and the two coumaphos durations
+
+- M5e: Summary lines on the hive detail slide sideways with a finger — a long equipment list is read in place instead of being cut off with "…"; tapping the row still opens its history
+- M5e: New inspection finding "Other harmful insects seen" (ants, earwigs — none of them beetles or wax moths), with the same honest tri-state as the other pests: not checked / checked and clear / found (migration 0005)
+
+### Changed
+
+- M5c: Queen mark colors are no longer suggested from the year — the picker offers the five colors with nothing preselected
+- M5b: Coumaphos split into strips (CheckMite+, 42 days) and trickle (Perizin, 7 days) — one product could not carry two treatment lengths five weeks apart, and the "take it off" reminder is only useful if it lands on the right day
+- M5b: Equipment items extended past §6 with brood box, drone trap frame, pollen trap and winter insulation — all things you add and must remember to remove
+- M5b: `equipment` gained a notes column, so an "Other" entry is no longer an unlabelled row
+- M5c: Hive status chips ("Healthy / Check soon / Urgent") removed; the underlying derived status still drives the assistant's tasks and reminders
+
 ### Fixed
 
 - M4b: Swipe directions were mirrored (edit/delete swapped, edit fired from the wrong gesture) — device-found; the library reports the physical swipe direction, not the panel side. Editing is now swipe-only (tap-to-edit removed)

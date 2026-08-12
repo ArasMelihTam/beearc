@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, max } from 'drizzle-orm';
 import { db } from '../client';
 import { inspections, type VarroaMethod } from '../schema';
 import { newId, nowIso } from '../util';
@@ -25,6 +25,7 @@ export interface InspectionInput {
   // Nullable on purpose: null = not checked, false = checked and clear.
   beetlesSeen?: boolean | null;
   waxMothSeen?: boolean | null;
+  otherInsectsSeen?: boolean | null;
   diseaseSignsSeen?: boolean | null;
   noteText?: string | null;
 }
@@ -35,7 +36,7 @@ export const inspectionsRepo = {
     return db
       .select()
       .from(inspections)
-      .where(eq(inspections.hiveId, hiveId))
+      .where(and(eq(inspections.hiveId, hiveId), isNull(inspections.deletedAt)))
       .orderBy(desc(inspections.inspectedAt));
   },
 
@@ -44,10 +45,32 @@ export const inspectionsRepo = {
     const rows = await db
       .select()
       .from(inspections)
-      .where(eq(inspections.hiveId, hiveId))
+      .where(and(eq(inspections.hiveId, hiveId), isNull(inspections.deletedAt)))
       .orderBy(desc(inspections.inspectedAt))
       .limit(1);
     return rows[0] ?? null;
+  },
+
+  async getById(id: string): Promise<Inspection | null> {
+    const rows = await db.select().from(inspections).where(eq(inspections.id, id));
+    return rows[0] ?? null;
+  },
+
+  /**
+   * Newest inspection DATE for each of several hives, in one grouped query —
+   * what the hive list needs to show "inspected 12 days ago" on every card
+   * without running a query per hive.
+   */
+  async latestByHives(hiveIds: string[]): Promise<Record<string, string>> {
+    if (hiveIds.length === 0) return {};
+    const rows = await db
+      .select({ hiveId: inspections.hiveId, latest: max(inspections.inspectedAt) })
+      .from(inspections)
+      .where(and(inArray(inspections.hiveId, hiveIds), isNull(inspections.deletedAt)))
+      .groupBy(inspections.hiveId);
+    const out: Record<string, string> = {};
+    for (const row of rows) if (row.latest) out[row.hiveId] = row.latest;
+    return out;
   },
 
   async create(hiveId: string, input: InspectionInput): Promise<Inspection> {
@@ -69,13 +92,49 @@ export const inspectionsRepo = {
       moisture: input.moisture ?? null,
       beetlesSeen: input.beetlesSeen ?? null,
       waxMothSeen: input.waxMothSeen ?? null,
+      otherInsectsSeen: input.otherInsectsSeen ?? null,
       diseaseSignsSeen: input.diseaseSignsSeen ?? null,
       weatherSnapshot: null, // M8
       noteText: input.noteText?.trim() || null,
       voiceTranscript: null, // M6
       createdAt: now,
+      deletedAt: null,
     };
     await db.insert(inspections).values(row);
     return row;
+  },
+
+  /**
+   * Correct a saved inspection (M5c). `inspectedAt` is deliberately NOT
+   * editable: it records when you actually stood at the hive, and the rules
+   * and the condition score both date their evidence from it.
+   */
+  async update(id: string, input: InspectionInput): Promise<void> {
+    await db
+      .update(inspections)
+      .set({
+        queenSeen: input.queenSeen,
+        eggsSeen: input.eggsSeen,
+        larvaeCondition: input.larvaeCondition ?? null,
+        broodPattern: input.broodPattern ?? null,
+        honeyStores: input.honeyStores ?? null,
+        pollenStores: input.pollenStores ?? null,
+        varroaCount: input.varroaCount ?? null,
+        varroaMethod: input.varroaMethod ?? null,
+        temperament: input.temperament ?? null,
+        beeDensity: input.beeDensity ?? null,
+        moisture: input.moisture ?? null,
+        beetlesSeen: input.beetlesSeen ?? null,
+        waxMothSeen: input.waxMothSeen ?? null,
+        otherInsectsSeen: input.otherInsectsSeen ?? null,
+        diseaseSignsSeen: input.diseaseSignsSeen ?? null,
+        noteText: input.noteText?.trim() || null,
+      })
+      .where(eq(inspections.id, id));
+  },
+
+  /** Soft delete — hidden everywhere, kept forever, like archived hives. */
+  async softDelete(id: string): Promise<void> {
+    await db.update(inspections).set({ deletedAt: nowIso() }).where(eq(inspections.id, id));
   },
 };

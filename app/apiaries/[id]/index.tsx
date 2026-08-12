@@ -5,9 +5,10 @@ import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { EmptyState, Screen } from '@/src/components/Screen';
 import { PrimaryButton } from '@/src/components/PrimaryButton';
-import { StatusChip } from '@/src/components/StatusChip';
+import { RecencyLine } from '@/src/components/RecencyLine';
 import { apiariesRepo, type Apiary } from '@/src/db/repos/apiariesRepo';
 import { hivesRepo, type Hive } from '@/src/db/repos/hivesRepo';
+import { getHiveRecency, type HiveRecency } from '@/src/logic/status';
 import { useTheme } from '@/src/theme/useTheme';
 import { sizes, sp } from '@/src/theme/tokens';
 
@@ -19,19 +20,25 @@ export default function ApiaryDetailScreen() {
   const router = useRouter();
   const [apiary, setApiary] = useState<Apiary | null>(null);
   const [hives, setHives] = useState<Hive[]>([]);
+  const [recency, setRecency] = useState<HiveRecency>({ lastInspectedAt: {}, overdueDays: 21 });
 
   useFocusEffect(
     useCallback(() => {
       if (!id) return;
-      apiariesRepo.getById(id).then((a) => {
+      void (async () => {
+        const a = await apiariesRepo.getById(id);
         // Archived or deleted while we were away? Leave quietly.
         if (!a || a.archivedAt) {
           router.back();
           return;
         }
         setApiary(a);
-      });
-      hivesRepo.listActiveByApiary(id).then(setHives);
+        const list = await hivesRepo.listActiveByApiary(id);
+        setHives(list);
+        // The apiary's latitude decides the season, so every hive here shares
+        // one settings lookup.
+        setRecency(await getHiveRecency(list, a.latitude));
+      })();
     }, [id, router])
   );
 
@@ -75,8 +82,14 @@ export default function ApiaryDetailScreen() {
                 <Text style={[styles.cardSub, { color: tokens.textMuted }]}>
                   {t(`hiveType.${item.hiveType}.label`)}
                 </Text>
+                {/* When you last opened this hive, without opening it. */}
+                <RecencyLine
+                  compact
+                  inspectedAt={recency.lastInspectedAt[item.id] ?? null}
+                  overdueDays={recency.overdueDays}
+                />
               </View>
-              <StatusChip status={item.status} />
+              <MaterialCommunityIcons name="chevron-right" size={26} color={tokens.textMuted} />
             </TouchableOpacity>
           )}
         />

@@ -8,7 +8,7 @@ import {
   Text,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import type { InspectionInput } from '@/src/db/repos/inspectionsRepo';
+import type { Inspection, InspectionInput } from '@/src/db/repos/inspectionsRepo';
 import { VARROA_METHODS, type VarroaMethod } from '@/src/db/schema';
 import { useTheme } from '@/src/theme/useTheme';
 import { sizes, sp } from '@/src/theme/tokens';
@@ -42,30 +42,42 @@ export type InspectionFactor = (typeof INSPECTION_FACTORS)[number];
  */
 export function InspectionForm({
   factors,
+  initial,
+  submitLabel,
   onSubmit,
 }: {
   factors: readonly InspectionFactor[];
+  /** Editing an existing record (M5c) instead of entering a fresh one. */
+  initial?: Inspection;
+  submitLabel?: string;
   onSubmit: (input: InspectionInput) => void;
 }) {
   const has = (f: InspectionFactor) => factors.includes(f);
   const { t } = useTranslation();
   const { tokens } = useTheme();
 
-  const [queenSeen, setQueenSeen] = useState(false);
-  const [eggsSeen, setEggsSeen] = useState(false);
-  const [larvaeCondition, setLarvaeCondition] = useState<number | null>(null);
-  const [broodPattern, setBroodPattern] = useState<number | null>(null);
-  const [honeyStores, setHoneyStores] = useState<number | null>(null);
-  const [pollenStores, setPollenStores] = useState<number | null>(null);
-  const [varroaCountText, setVarroaCountText] = useState('');
-  const [varroaMethod, setVarroaMethod] = useState<VarroaMethod | null>(null);
-  const [temperament, setTemperament] = useState<number | null>(null);
-  const [beeDensity, setBeeDensity] = useState<number | null>(null);
-  const [moisture, setMoisture] = useState<number | null>(null);
-  const [beetlesSeen, setBeetlesSeen] = useState(false);
-  const [waxMothSeen, setWaxMothSeen] = useState(false);
-  const [diseaseSignsSeen, setDiseaseSignsSeen] = useState(false);
-  const [note, setNote] = useState('');
+  const [queenSeen, setQueenSeen] = useState(initial?.queenSeen ?? false);
+  const [eggsSeen, setEggsSeen] = useState(initial?.eggsSeen ?? false);
+  const [larvaeCondition, setLarvaeCondition] = useState<number | null>(
+    initial?.larvaeCondition ?? null
+  );
+  const [broodPattern, setBroodPattern] = useState<number | null>(initial?.broodPattern ?? null);
+  const [honeyStores, setHoneyStores] = useState<number | null>(initial?.honeyStores ?? null);
+  const [pollenStores, setPollenStores] = useState<number | null>(initial?.pollenStores ?? null);
+  const [varroaCountText, setVarroaCountText] = useState(
+    initial?.varroaCount != null ? String(initial.varroaCount) : ''
+  );
+  const [varroaMethod, setVarroaMethod] = useState<VarroaMethod | null>(
+    initial?.varroaMethod ?? null
+  );
+  const [temperament, setTemperament] = useState<number | null>(initial?.temperament ?? null);
+  const [beeDensity, setBeeDensity] = useState<number | null>(initial?.beeDensity ?? null);
+  const [moisture, setMoisture] = useState<number | null>(initial?.moisture ?? null);
+  const [beetlesSeen, setBeetlesSeen] = useState(initial?.beetlesSeen ?? false);
+  const [waxMothSeen, setWaxMothSeen] = useState(initial?.waxMothSeen ?? false);
+  const [otherInsectsSeen, setOtherInsectsSeen] = useState(initial?.otherInsectsSeen ?? false);
+  const [diseaseSignsSeen, setDiseaseSignsSeen] = useState(initial?.diseaseSignsSeen ?? false);
+  const [note, setNote] = useState(initial?.noteText ?? '');
 
   const handleSave = () => {
     let varroaCount: number | null = null;
@@ -92,6 +104,7 @@ export function InspectionForm({
       // Unchecked factor → null ("didn't look"), never false ("looked, clear").
       beetlesSeen: has('pests') ? beetlesSeen : null,
       waxMothSeen: has('pests') ? waxMothSeen : null,
+      otherInsectsSeen: has('pests') ? otherInsectsSeen : null,
       diseaseSignsSeen: has('pests') ? diseaseSignsSeen : null,
       noteText: note || null,
     });
@@ -191,6 +204,11 @@ export function InspectionForm({
               onChange={setWaxMothSeen}
             />
             <ToggleRow
+              label={t('inspections.otherInsectsSeen')}
+              value={otherInsectsSeen}
+              onChange={setOtherInsectsSeen}
+            />
+            <ToggleRow
               label={t('inspections.diseaseSignsSeen')}
               value={diseaseSignsSeen}
               onChange={setDiseaseSignsSeen}
@@ -215,7 +233,11 @@ export function InspectionForm({
           multiline
         />
       </ScrollView>
-      <PrimaryButton label={t('inspections.save')} icon="check" onPress={handleSave} />
+      <PrimaryButton
+        label={submitLabel ?? t('inspections.save')}
+        icon="check"
+        onPress={handleSave}
+      />
     </KeyboardAvoidingView>
   );
 }

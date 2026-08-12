@@ -118,11 +118,19 @@ export const inspections = sqliteTable('inspections', {
   // default these to false: "didn't look" must not read as "no pests".
   beetlesSeen: integer('beetles_seen', { mode: 'boolean' }),
   waxMothSeen: integer('wax_moth_seen', { mode: 'boolean' }),
+  /**
+   * Other HARMFUL insects — ants, earwigs and the like (user request
+   * 2026-08-12). Same tri-state as the others. The column keeps the shorter
+   * name it was created with; "harmful" lives in the label, where it matters.
+   */
+  otherInsectsSeen: integer('other_insects_seen', { mode: 'boolean' }),
   diseaseSignsSeen: integer('disease_signs_seen', { mode: 'boolean' }),
   weatherSnapshot: text('weather_snapshot'), // JSON string (M8)
   noteText: text('note_text'),
   voiceTranscript: text('voice_transcript'), // M6
   createdAt: text('created_at').notNull(),
+  /** Soft delete (M5c) — same "never lose history" rule as §6 archives. */
+  deletedAt: text('deleted_at'),
 });
 
 // ---------------------------------------------------------------------------
@@ -140,11 +148,26 @@ export const inspectionPhotos = sqliteTable('inspection_photos', {
 // ---------------------------------------------------------------------------
 // treatments — varroa & co.; last treatment is surfaced to prevent overdose (M5)
 // ---------------------------------------------------------------------------
+/**
+ * Organic acids first, then thymol, then the synthetic strips (user decision
+ * 2026-08-08: the synthetics are what's actually sold locally, and they have
+ * very different treatment lengths — see treatmentDurationDays in rules.ts).
+ * `product` is a plain text column, so this list is TS-only: adding a product
+ * needs NO migration, exactly like the hive types.
+ */
 export const TREATMENT_PRODUCTS = [
   'formic_acid',
   'oxalic_acid',
   'thymol',
   'amitraz',
+  'flumethrin',
+  'tau_fluvalinate',
+  // Coumaphos is sold in two forms that stay on the hive for very different
+  // lengths of time (user decision 2026-08-12), so they are two products —
+  // one 6-week strip, one trickle given twice a week apart. Recording the
+  // wrong one would date the "remove it" reminder five weeks out.
+  'coumaphos_strip',
+  'coumaphos_trickle',
   'other',
 ] as const;
 export type TreatmentProduct = (typeof TREATMENT_PRODUCTS)[number];
@@ -181,12 +204,24 @@ export const tasks = sqliteTable('tasks', {
 // ---------------------------------------------------------------------------
 // equipment — supers, feeders, excluders… drives rule R1 (M4/M5)
 // ---------------------------------------------------------------------------
+/**
+ * §6's list plus four items the beekeeper actually puts on a hive (user
+ * decision 2026-08-12). Ordered by how often they are picked, because this
+ * list is chosen with gloves on. Text column → TS-only enum, no migration.
+ *
+ * R1 keys off the `_super` suffix, so only deep_super and medium_super
+ * schedule a fill check — a brood box is not something you check for fill.
+ */
 export const EQUIPMENT_ITEMS = [
   'deep_super',
   'medium_super',
+  'brood_box',
+  'frames',
   'queen_excluder',
   'feeder',
-  'frames',
+  'drone_frame',
+  'pollen_trap',
+  'winter_insulation',
   'other',
 ] as const;
 export type EquipmentItem = (typeof EQUIPMENT_ITEMS)[number];
@@ -199,7 +234,51 @@ export const equipment = sqliteTable('equipment', {
   item: text('item', { enum: EQUIPMENT_ITEMS }).notNull(),
   quantity: integer('quantity').notNull().default(1),
   addedAt: text('added_at').notNull(),
+  /** null = still on the hive. */
   removedAt: text('removed_at'),
+  /** Beyond §6: without it an "Other" row is an unlabelled mystery (M5b). */
+  notes: text('notes'),
+  /** Soft delete (M5b) — a mistyped row is hidden, never erased. */
+  deletedAt: text('deleted_at'),
+});
+
+// ---------------------------------------------------------------------------
+// transfers — what moved from one hive to another (user request 2026-07-07)
+// ---------------------------------------------------------------------------
+/**
+ * Equalizing, boosting a nuc, swarm prevention: beekeeping is full of moving
+ * a frame of brood from a strong colony into a weak one. One row records both
+ * halves of that move, so it appears in the donor's history as "gave" and in
+ * the receiver's as "received" — never entered twice.
+ */
+export const TRANSFER_ITEMS = [
+  'brood_frame',
+  'honey_frame',
+  'pollen_frame',
+  'empty_comb',
+  'super',
+  'feeder',
+  'queen_cell',
+  /** Shaken or scooped bees — no frame, just bees (user decision 2026-08-08). */
+  'bees',
+  'other',
+] as const;
+export type TransferItem = (typeof TRANSFER_ITEMS)[number];
+
+export const transfers = sqliteTable('transfers', {
+  id: text('id').primaryKey(),
+  fromHiveId: text('from_hive_id')
+    .notNull()
+    .references(() => hives.id),
+  toHiveId: text('to_hive_id')
+    .notNull()
+    .references(() => hives.id),
+  item: text('item', { enum: TRANSFER_ITEMS }).notNull(),
+  quantity: integer('quantity').notNull().default(1),
+  transferredAt: text('transferred_at').notNull(),
+  notes: text('notes'),
+  /** Soft delete (M5b) — same "never lose history" rule as §6. */
+  deletedAt: text('deleted_at'),
 });
 
 // ---------------------------------------------------------------------------

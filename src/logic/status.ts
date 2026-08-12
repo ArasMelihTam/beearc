@@ -1,8 +1,10 @@
 import { apiariesRepo } from '../db/repos/apiariesRepo';
+import type { Equipment } from '../db/repos/equipmentRepo';
 import { hivesRepo, type Hive } from '../db/repos/hivesRepo';
 import { inspectionsRepo, type Inspection } from '../db/repos/inspectionsRepo';
 import { SETTING_KEYS, settingsRepo } from '../db/repos/settingsRepo';
 import { tasksRepo, type Task, type TaskUpdateInput } from '../db/repos/tasksRepo';
+import type { Treatment } from '../db/repos/treatmentsRepo';
 import {
   cancelTaskNotification,
   scheduleTaskNotification,
@@ -10,7 +12,11 @@ import {
 import {
   defaultRuleSettings,
   deriveHiveStatus,
+  evaluateEquipmentAdded,
   evaluateInspection,
+  evaluateTreatmentEnded,
+  evaluateTreatmentStarted,
+  ruleSource,
   type RuleSettings,
   type RuleTaskDraft,
 } from './rules';
@@ -127,6 +133,137 @@ export async function applyInspectionRules(inspection: Inspection): Promise<void
   );
   await materializeDrafts(hive, drafts);
   await recomputeHiveStatus(inspection.hiveId);
+}
+
+/**
+ * When each hive was last inspected, plus the neglect threshold to shade it
+ * against (R6's `inspectionOverdueDays`, which the beekeeper can edit).
+ *
+ * This is all the hive list needs: a date and a tone. There is no scoring —
+ * a colony's condition is the beekeeper's judgement, and the app's job is to
+ * put the facts in front of them, not to grade the bees.
+ */
+export interface HiveRecency {
+  /** hive id → newest inspection timestamp, or null if never inspected. */
+  lastInspectedAt: Record<string, string | null>;
+  overdueDays: number;
+}
+
+export async function getHiveRecency(
+  hives: Hive[],
+  latitude?: number | null
+): Promise<HiveRecency> {
+  if (hives.length === 0) return { lastInspectedAt: {}, overdueDays: 21 };
+  // Two queries for the whole apiary, not two per hive — this runs on every
+  // focus and an apiary can hold forty hives.
+  const [settings, latest] = await Promise.all([
+    getRuleSettings(latitude),
+    inspectionsRepo.latestByHives(hives.map((h) => h.id)),
+  ]);
+  const lastInspectedAt: Record<string, string | null> = {};
+  for (const hive of hives) lastInspectedAt[hive.id] = latest[hive.id] ?? null;
+  return { lastInspectedAt, overdueDays: settings.inspectionOverdueDays };
+}
+
+/** The rules that read an inspection — the only ones a correction can undo. */
+const INSPECTION_RULE_IDS = ['R3', 'R4', 'R5'] as const;
+
+/**
+ * Re-derive the inspection rules for a hive from its NEWEST surviving
+ * inspection (M5c) — used after an inspection is edited or deleted.
+ *
+ * Unlike saving a new inspection, this also RETRACTS: if the corrected record
+ * no longer says "no queen, no eggs", the open "recheck for queen/eggs" task
+ * goes away and the hive stops being red. A typo must not leave the beekeeper
+ * with a chore that was never real.
+ *
+ * Saving a *new* inspection deliberately keeps the old behaviour (open tasks
+ * stay until they are checked off or swiped away, master prompt §7) — a good
+ * inspection today does not prove yesterday's problem was handled.
+ */
+export async function syncInspectionRules(hiveId: string): Promise<void> {
+  const hive = await hivesRepo.getById(hiveId);
+  if (!hive) return;
+  const settings = await settingsForHive(hive);
+  const latest = await inspectionsRepo.latestByHive(hiveId);
+  const drafts = latest
+    ? evaluateInspection(
+        {
+          inspectedAt: latest.inspectedAt,
+          queenSeen: latest.queenSeen,
+          eggsSeen: latest.eggsSeen,
+          honeyStores: latest.honeyStores,
+          varroaCount: latest.varroaCount,
+          varroaMethod: latest.varroaMethod,
+        },
+        settings
+      )
+    : [];
+
+  const stillJustified = new Set(drafts.map((d) => d.ruleId));
+  for (const ruleId of INSPECTION_RULE_IDS) {
+    if (stillJustified.has(ruleId)) continue;
+    const stale = await tasksRepo.getOpenBySource(hiveId, ruleSource(ruleId));
+    if (!stale) continue;
+    await tasksRepo.softDelete(stale.id);
+    await cancelTaskNotification(stale.id);
+  }
+
+  await materializeDrafts(hive, drafts);
+  await recomputeHiveStatus(hiveId);
+}
+
+/**
+ * R1 — a super went on the hive: remind the beekeeper to check how it is
+ * filling (M5b). Only supers trigger it, and only when a row is first added:
+ * editing an old entry must not book a fresh chore.
+ *
+ * Same known limit as R2: the duplicate guard is per rule per hive, so
+ * stacking a second super while the first check is still open adds no second
+ * reminder — one "check the supers" trip covers both.
+ */
+export async function applyEquipmentAdded(item: Equipment): Promise<void> {
+  const hive = await hivesRepo.getById(item.hiveId);
+  if (!hive) return;
+  const settings = await settingsForHive(hive);
+  await materializeDrafts(
+    hive,
+    evaluateEquipmentAdded(item.item, item.addedAt, settings)
+  );
+}
+
+/**
+ * R2 (start) — a treatment went on the hive: schedule the reminder to take it
+ * off again after the product's typical duration (M5a). Nothing here colors
+ * the hive: R2 is a reminder, not an alarm (§7 decision at M4).
+ *
+ * Known limit: the duplicate guard is per rule per hive, so a second
+ * treatment started on the SAME hive while the first is still running gets no
+ * second "end treatment" reminder. Two concurrent products on one colony is
+ * rare and usually a mistake — the "last treatment" warning shows it.
+ */
+export async function applyTreatmentStarted(treatment: Treatment): Promise<void> {
+  const hive = await hivesRepo.getById(treatment.hiveId);
+  if (!hive) return;
+  const settings = await settingsForHive(hive);
+  await materializeDrafts(
+    hive,
+    evaluateTreatmentStarted(treatment.product, treatment.startedAt, settings)
+  );
+}
+
+/**
+ * R2 (end) — the treatment came off: close the "end / remove treatment"
+ * reminder if it's still open (it just happened, that's the whole point), and
+ * schedule the varroa recount that proves the treatment actually worked.
+ */
+export async function applyTreatmentEnded(treatment: Treatment): Promise<void> {
+  const hive = await hivesRepo.getById(treatment.hiveId);
+  if (!hive || !treatment.endedAt) return;
+  const settings = await settingsForHive(hive);
+  const endTask = await tasksRepo.getOpenBySource(hive.id, ruleSource('R2_END'));
+  if (endTask) await setTaskDone(endTask, true);
+  await materializeDrafts(hive, evaluateTreatmentEnded(treatment.endedAt, settings));
 }
 
 /**

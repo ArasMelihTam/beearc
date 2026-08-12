@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -12,6 +12,7 @@ import { PrimaryButton } from '@/src/components/PrimaryButton';
 import { SETTING_KEYS, settingsRepo } from '@/src/db/repos/settingsRepo';
 import { tasksRepo, type TaskWithRefs } from '@/src/db/repos/tasksRepo';
 import { formatDueDate } from '@/src/i18n/formatDate';
+import { ruleIdFromSource } from '@/src/logic/rules';
 import { deleteTask, recomputeAllHiveStatuses, setTaskDone } from '@/src/logic/status';
 import { displayTaskTitle } from '@/src/notifications/taskNotifications';
 import { useTheme } from '@/src/theme/useTheme';
@@ -80,6 +81,32 @@ export default function TodayScreen() {
     await load();
   };
 
+  /**
+   * Checking off "Plan varroa treatment" (R4) asks what you decided instead
+   * of just clearing the row (user decision 2026-08-08). Recording the
+   * treatment is what completes the task, so the mite count that raised the
+   * alarm and the treatment that answered it stay connected — and the
+   * "last treatment" overdose warning appears at exactly the right moment.
+   *
+   * Hung off the check circle on purpose: it is already the one deliberate
+   * tap target on a row, so this adds no new surface for a glove to brush.
+   */
+  const checkOff = (task: TaskWithRefs) => {
+    const hiveId = task.hiveId; // pulled out so it narrows inside the callback
+    if (task.doneAt || hiveId === null || ruleIdFromSource(task.source) !== 'R4') {
+      void toggle(task);
+      return;
+    }
+    Alert.alert(t('treatments.planTitle'), t('treatments.planMessage'), [
+      {
+        text: t('treatments.planStart'),
+        onPress: () => router.push(`/treatments/new?hiveId=${hiveId}&fromTaskId=${task.id}`),
+      },
+      { text: t('treatments.planJustDone'), onPress: () => void toggle(task) },
+      { text: t('common.cancel'), style: 'cancel' },
+    ]);
+  };
+
   const remove = async (task: TaskWithRefs) => {
     await deleteTask(task);
     await load();
@@ -89,7 +116,7 @@ export default function TodayScreen() {
     <TaskRow
       item={item}
       overdue={section.key === 'overdue'}
-      onToggle={() => void toggle(item)}
+      onToggle={() => checkOff(item)}
       onRemove={() => void remove(item)}
       onEdit={() => router.push(`/tasks/${item.id}/edit`)}
     />

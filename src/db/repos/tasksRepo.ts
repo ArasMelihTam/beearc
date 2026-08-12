@@ -147,13 +147,13 @@ export const tasksRepo = {
   },
 
   /**
-   * Duplicate guard: is there already an open task from this rule for this
-   * hive? Logging two bad inspections in a row must not create two identical
-   * "recheck queen" tasks.
+   * The hive's open task from one rule, if it has one. M5a uses it to close
+   * "End / remove treatment" automatically when the treatment is ended in the
+   * app — the reminder has served its purpose, so it shouldn't need a tap.
    */
-  async hasOpenBySource(hiveId: string, source: string): Promise<boolean> {
+  async getOpenBySource(hiveId: string, source: string): Promise<Task | null> {
     const rows = await db
-      .select({ id: tasks.id })
+      .select()
       .from(tasks)
       .where(
         and(
@@ -164,6 +164,15 @@ export const tasksRepo = {
         )
       )
       .limit(1);
-    return rows.length > 0;
+    return rows[0] ?? null;
+  },
+
+  /**
+   * Duplicate guard: is there already an open task from this rule for this
+   * hive? Logging two bad inspections in a row must not create two identical
+   * "recheck queen" tasks.
+   */
+  async hasOpenBySource(hiveId: string, source: string): Promise<boolean> {
+    return (await this.getOpenBySource(hiveId, source)) !== null;
   },
 };

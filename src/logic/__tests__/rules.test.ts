@@ -181,6 +181,16 @@ describe('equipment and treatments', () => {
     expect(evaluateEquipmentAdded('queen_excluder', JUNE, S)).toEqual([]);
   });
 
+  test('R1 ignores the M5b items — a brood box is not checked for fill', () => {
+    // R1 keys off the `_super` suffix, so the items added in M5b must stay
+    // silent: nothing about a brood box or a pollen trap fills with honey.
+    expect(evaluateEquipmentAdded('brood_box', JUNE, S)).toEqual([]);
+    expect(evaluateEquipmentAdded('drone_frame', JUNE, S)).toEqual([]);
+    expect(evaluateEquipmentAdded('pollen_trap', JUNE, S)).toEqual([]);
+    expect(evaluateEquipmentAdded('winter_insulation', JUNE, S)).toEqual([]);
+    expect(evaluateEquipmentAdded('frames', JUNE, S)).toEqual([]);
+  });
+
   test('R2 start: end-task per product duration; "other" gets none', () => {
     expect(evaluateTreatmentStarted('formic_acid', JUNE, S)[0].dueAt).toBe(
       dueInDays(JUNE, 14)
@@ -190,6 +200,17 @@ describe('equipment and treatments', () => {
     );
     expect(evaluateTreatmentStarted('amitraz', JUNE, S)[0].dueAt).toBe(dueInDays(JUNE, 42));
     expect(evaluateTreatmentStarted('other', JUNE, S)).toEqual([]);
+  });
+
+  test('R2 start: the two coumaphos forms are five weeks apart', () => {
+    // Strips stay in for six weeks; the trickle is two doses a week apart.
+    // Recording the wrong one would date the "take it off" reminder wrongly.
+    expect(evaluateTreatmentStarted('coumaphos_strip', JUNE, S)[0].dueAt).toBe(
+      dueInDays(JUNE, 42)
+    );
+    expect(evaluateTreatmentStarted('coumaphos_trickle', JUNE, S)[0].dueAt).toBe(
+      dueInDays(JUNE, 7)
+    );
   });
 
   test('R2 end: recount due +7 days after the treatment ends', () => {

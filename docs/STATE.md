@@ -2,11 +2,15 @@
 
 > Update this file at the end of every session so the next session resumes with zero context loss.
 
-**Last updated:** 2026-07-12
+**Last updated:** 2026-08-12
 
 ## Current milestone
 
-**M4 + M4b: ✅ DONE, accepted on device 2026-07-12** (incl. two device-found fixes: mirrored swipe directions, iOS notification nil-body crash). Committed as one commit. Next up: **M5 — Queens & treatments + transfers** (see "Then (M5...)" below — first session should ask the user the open judgment calls listed there, incl. confirming R4 due +2 days).
+**M5a + M5b + M5c + M5d: ✅ code complete (2026-08-12), device acceptance PENDING — nothing in this whole block has run on a phone yet.** M5 was split into M5a (queens, treatments, R2 + R4 wiring) and M5b (equipment, transfers, R1 wiring). M5c and M5d are user-requested blocks that landed before M5b: inspection viewing/editing/deleting, elapsed-time wording, and last-inspection recency on the hive list. A hive condition score was built in M5c and **removed again on 2026-08-12** at the user's request (see its section below). Next: user tests all four blocks on device, then M6 (photos & voice).
+
+Verified off-device at the end of this session: `tsc --noEmit` clean, **62/62 Jest green**, en/tr key parity **341/341**, no missing i18n keys, every enum value translated in both languages, eslint unchanged (3 pre-existing issues), migration chain 0000→0005 applied in real SQLite with FK enforcement, **SCHEMA_VERSION 6**.
+
+**M4 + M4b: ✅ DONE, accepted on device 2026-07-12** (incl. two device-found fixes: mirrored swipe directions, iOS notification nil-body crash). Committed as `23de7ca`.
 
 **NOTE: development moves to Claude Code from here (2026-07-12).** AGENTS.md contains the session workflow; this file + docs/MASTER_PROMPT.md (local-only, gitignored) remain the source of truth for state and spec.
 
@@ -80,14 +84,78 @@
 - status.ts: + `deleteTask`, `updateTask` (cancel/reschedule notification, recompute old+new hive). tasksRepo: + `update`, `softDelete`, `listHistory`, deleted-filter on every query.
 - Verified: tsc clean, 29/29 tests, en/tr parity, migration chain 0000→0002 in real SQLite (python3 sqlite3).
 
-## Then (M5 — Queens & treatments + transfers)
+### M5a — Queens & treatments ✅ code complete (2026-08-08, device acceptance pending)
 
-- [ ] Queen tracker: age auto-computed from introduced_at, origin, mark color, 1–5 stars, replacement history
-- [ ] Treatment log with "last treatment" warning when adding a new one
-- [ ] Wire R2 (treatment start/end) and R1 (equipment) to their new screens — trigger functions already exist + tested in src/logic/rules.ts
-- [ ] Equipment list per hive
-- [ ] NEW (user request 2026-07-07) — hive-to-hive transfers table + migration: from_hive_id, to_hive_id, item (brood_frame/honey_frame/pollen_frame/empty_comb/super/feeder/queen_cell/other), quantity, transferred_at, notes. Shows in BOTH hives' histories (donor "gave" / receiver "received"). Covers equalizing, boosting nucs, swarm prevention.
-- [ ] Beekeeping judgment calls (rule 7): queen mark color conventions (international 5-color cycle?), treatment products TR terminology, confirm R4 due +2 days from M4, transfer item list wording (TR+EN)
+- Judgment calls confirmed by user (rule 7) 2026-08-08: queen marking = the international 5 colors (the year-based *suggestion* was reverted a session later — see M5c); treatment list **+ flumethrin, tau-fluvalinate, coumaphos**; transfers get an extra **"bees (shaken/scooped)"** item (M5b); R4 answered with a better design (below) instead of a due-date change — **+2 days stands**.
+- **R4 → treatment flow (user idea, agreed):** checking off "Plan varroa treatment" no longer silently clears the row. It asks *what did you decide?* → **Start a treatment** (opens the treatment form pre-filled for that hive, with the last-treatment warning) or **Just mark it done** (brood break, split, waiting). Saving the treatment is what completes the task, so R4 → treatment log → R2 end/recount is one unbroken chain. Hung off the **check circle** deliberately: it is already the only tap target on a task row (M4b removed tap-to-edit for glove safety), so this adds no new accidental-touch surface.
+- `src/logic/queens.ts` — PURE: `QUEEN_MARK_COLORS` (the five paint colors), `parseMarkColor` (permissive text column → validated or null), `queenAgeMonths` (COMPLETED months, future date reads 0), `queenAgeParts`, `isQueenAging` (≥24 months). 9 Jest tests.
+- `src/i18n/formatQueen.ts` — `formatQueenAge(t, iso)`; age always in MONTHS per master prompt M5 ("queen age in months"); 0 months reads "New this month", not "0 months old".
+- Repos: `queensRepo` (listByHive, current, getById, **introduce** — retires the previous queen automatically, clamped so she can never be replaced before she was introduced —, update), `treatmentsRepo` (listByHive, latestByHive, activeByHive, getById, create, update, setEnded). tasksRepo: + `getOpenBySource` (hasOpenBySource now delegates to it).
+- status.ts: + `applyTreatmentStarted` (R2_END) and `applyTreatmentEnded` (auto-completes an open R2_END, then books R2_RECOUNT). **Known limit (documented in code):** the duplicate guard is per rule per hive, so a 2nd concurrent treatment on the SAME hive gets no 2nd end-reminder — rare and usually a mistake.
+- **No migration.** `product` is a plain text column and the enum is TS-only (same trick as hive types) — `npm run db:generate` confirms "No schema changes". **SCHEMA_VERSION stays 3**, migration chain still 0000→0002.
+- New components: `SummaryRow` (56dp headline+chevron nav row), `StarRating` (1–5, tap again to clear), `MarkColorPicker` + `MarkColorDot`, `MonthYearPicker` (year stepper + 12 month cells, future months disabled), `PastDayPicker` (+ `daysAgoIso`), `QueenForm`, `TreatmentForm`.
+- New screens: `app/hives/[id]/queens.tsx`, `app/queens/new.tsx`, `app/queens/[id]/edit.tsx`, `app/hives/[id]/treatments.tsx`, `app/treatments/new.tsx`, `app/treatments/[id]/edit.tsx`. Hive detail gained two SummaryRows (queen age / last treatment) + an "Inspections" section header.
+- formatDate.ts: + `formatDate`, `formatMonthYear`, `formatMonthShort`, `formatAgo` (strict — "12 days ago" never rounds to "about 2 weeks").
+- Verified off-device at the time: `tsc --noEmit` clean (after typed-routes regen), Jest green, en/tr key parity, every enum value translated in both languages, eslint shows only the 3 pre-existing M1/M4 issues.
+
+### M5c — Inspection management ✅ code complete (2026-08-12, device acceptance pending)
+
+User requests, all implemented:
+
+- **Year-based mark colors removed.** No suggested color, no hint text; `markColorForYear`/`markColorForIso` deleted from `src/logic/queens.ts` along with their tests. The five colors remain as a plain list with **nothing preselected**.
+- **"Check soon" is gone.** `StatusChip` was the only thing that said it and is now DELETED, along with the `status.*` i18n block in both languages. The coarse `hives.status` column still exists and still drives rule tasks and notifications — it is simply no longer shown anywhere. **M9 note:** map pins were specced to use `hives.status`; it is still there and still correct for that.
+- **Inspections can now be viewed, edited and deleted** — `app/inspections/[id]/index.tsx` (full record, saying "not checked" where nothing was recorded rather than implying a zero) and `app/inspections/[id]/edit.tsx` (all sections shown, not just the ones ticked that day — editing is where you add what you forgot). Timeline rows use the SAME gesture wiring as task rows (M4b), copied verbatim including the `onSwipeableOpen` physical-direction quirk. Tap opens the detail — unlike a task row that is a harmless read, so a stray glove tap costs nothing. Soft delete via **`inspections.deleted_at` (migration 0003, SCHEMA_VERSION 4)**; every inspection query filters it.
+- `inspectionsRepo`: + `getById`, `latestByHives` (one grouped `max()` query for a whole apiary), `update` (**`inspectedAt` deliberately NOT editable** — it is when you stood at the hive, and the rules date their evidence from it), `softDelete`.
+- **`syncInspectionRules(hiveId)` in status.ts — the one genuinely new rule behaviour.** After an edit or delete it re-derives R3/R4/R5 from the newest surviving inspection and **RETRACTS** what is no longer justified: fixing a mistyped "no queen seen" deletes the open recheck task and un-reds the hive. Saving a *new* inspection keeps the old §7 behaviour on purpose (a good inspection today does not prove yesterday's problem was handled).
+- **Elapsed time** — "Inspected 12 days ago" / "3 months 12 days ago", on the timeline cards, the detail screen and the hive list. `src/logic/elapsed.ts` (pure, 12 tests incl. `staleness`) + `src/i18n/formatElapsed.ts`, which composes the string from separately-pluralized month and day parts so "1 month 1 day ago" is never "1 months 1 days ago" in either language.
+
+### ❌ Hive condition score — BUILT, THEN REMOVED THE SAME DAY (2026-08-12)
+
+**Do not rebuild this without the user asking for it.**
+
+A weighted, time-decaying condition model (`src/logic/condition.ts`, 35 tests) briefly existed: Bayesian queenrightness so that a missed queen was never read as queenlessness, per-factor half-lives, importance weights, disease as a multiplier rather than an average, a clamped least-squares trend term, confidence blending, a red→amber→green meter, a compact list badge, and a "show your work" breakdown screen.
+
+**The user removed it: "I believe we need to remove this system and just state the days of the last inspection and have the name and people can see the details of the inspection, I prefer it to be kept simple."** They had also asked, one message earlier, whether it should go because it felt unpredictable. I recommended keeping it and judging it against real colonies first (it had never run on a phone); they reaffirmed, so it was removed in full — no dead code, no dangling i18n, no leftover tokens. Recoverable from git history if it is ever wanted back.
+
+What survived from that round, and why it is worth remembering:
+
+- The user was **right** that findings were not proportionate. A beetle was costing ~10% of the score, about half of what a ruined brood pattern cost. If any scoring is ever attempted again: **beetle < wax moth < bad brood < starvation and heavy varroa < disease.**
+- The principle they insisted on stands regardless of any algorithm: **not seeing the queen or eggs does not mean they are absent** — the beekeeper may simply have missed them. Nothing in the app may treat "not seen" as "not there". Rule R3 already handles this correctly by scheduling a recheck rather than declaring anything.
+- **Deleted with it:** `src/logic/condition.ts` + its tests, `src/components/ConditionMeter.tsx`, `app/hives/[id]/condition.tsx`, `src/theme/conditionColor.ts`, the `conditionLow/Mid/High` theme tokens, and the `condition.*` i18n block in both languages. `recencyColor` was rescued into `src/theme/recencyColor.ts` because the recency shading was a **separate** user request that stays.
+
+### M5d — Recency ✅ code complete (2026-08-12, device acceptance pending)
+
+- **Last inspection on the hive list**, before opening anything — `RecencyLine` on every card in the apiary hive list, fed by `getHiveRecency` (status.ts) + `inspectionsRepo.latestByHives` (one grouped `max()` query for the whole apiary, not one per hive). The card is now: label, hive type, "Inspected X ago", chevron.
+- **Recency as a tone, not just a date** (user: "just looking at the dates doesn't instantly click"). `recencyColor` in `src/theme/recencyColor.ts` fades sage → muted grey → terracotta as a hive approaches and passes R6's neglect threshold — the beekeeper's own editable setting, not a hard-coded 21. Used on the hive list, the hive detail header, and every timeline card. `staleness()` in `src/logic/elapsed.ts` is deliberately LINEAR (5 tests): a curve would make equal gaps in days look different at different ages, which is the opposite of "instantly clicks". Color is never the only signal — the line always states the age in words too.
+- Hive detail is now: label + type + "Inspected X ago", then the queen and last-treatment SummaryRows, then the timeline. **No computed health verdict anywhere** — the app states facts, the beekeeper judges the colony.
+
+### M5b — Equipment & transfers ✅ code complete (2026-08-12, device acceptance pending)
+
+- Judgment calls confirmed by user (rule 7) 2026-08-12: **coumaphos is sold in both forms locally** → split into `coumaphos_strip` (42 d) and `coumaphos_trickle` (7 d), the old `coumaphos` value dropped entirely (M5a never ran on a phone, so no row can be carrying it); **equipment list extended past §6** with brood box, drone trap frame, pollen trap and winter insulation. TR wording for equipment and transfer items is PROPOSED, not yet device-verified.
+- **Equipment.** `equipmentRepo` + `app/hives/[id]/equipment.tsx` (on-hive section with one-tap "Take off", then the taken-off history) + `app/equipment/new.tsx` / `app/equipment/[id]/edit.tsx`. Items are a TS-only enum on a text column, so the four new ones needed no migration. `EquipmentForm` mirrors `TreatmentForm` on purpose — both records are "something goes on the hive, later it comes off".
+- **R1 wired.** `applyEquipmentAdded` in status.ts, called ONLY from the add screen: editing an old entry must not book a fresh chore. R1 still keys off the `_super` suffix, so brood boxes, traps and insulation stay silent (tested). Same known limit as R2 — the duplicate guard is per rule per hive, so a second super stacked while the first check is open adds no second reminder (one trip covers both).
+- **Transfers.** New `transfers` table (migration **0004**, SCHEMA_VERSION **5**): from_hive_id, to_hive_id, item, quantity, transferred_at, notes, deleted_at. **One stored row is one move**, joined to both hive labels via drizzle `alias()` and read from whichever side you are standing on — verified in real SQLite that a single row appears in both hives' queries. Deleting it removes it from both at once.
+- `src/logic/transfers.ts` — PURE: `directionFor`, `otherHiveIdOf`, `isValidTransfer` (a hive cannot give to itself), `endsFor` (this hive + direction → the two ends). 10 Jest tests including the round-trip.
+- The form asks the question from where the beekeeper is standing: a `SegmentPicker` saying "K-07 gave" / "K-07 received" (the hive's own label rides in the segment, because that is the word that stops you recording it backwards), then apiary → hive chips defaulting to this hive's own apiary, the hive itself filtered out.
+- No rules fire on a transfer, deliberately: it records where things went, and what it means for either colony is the next inspection's business.
+- New shared components: `QuantityStepper` (48dp − N +, no keyboard), `SegmentPicker` (2–3 full-width 56dp segments, icon + label), `EquipmentForm`, `TransferForm`.
+- Hive detail now carries four summary rows: queen, last treatment, equipment on the hive, last transfer.
+- **Beyond §6 (flagged):** `equipment` gained a `notes` column in the same migration — without it an "Other" entry is an unlabelled row. Every other record type in the app already has notes.
+
+### M5e — Sliding summaries & other insects ✅ code complete (2026-08-12, device acceptance pending)
+
+Two user requests, both implemented:
+
+- **Summary values slide sideways instead of being cut off.** `SummaryRow` now holds its value in a horizontal `ScrollView`, so a hive carrying four supers, an excluder and a feeder can be read with a finger drag — no navigating into the equipment screen to see six words. The row still opens its history on tap: the text sits in its own `TouchableOpacity` inside the scroll view as well as the row's, so a still finger taps and a moving finger scrolls. Applies to all four rows on hive detail (queen, treatment, equipment, transfers). The inspection **detail** screen was left alone on purpose — its values wrap onto a second line rather than truncating, so nothing was ever hidden there.
+- **"Other harmful insects seen".** Migration **0005**, SCHEMA_VERSION **6**: `inspections.other_insects_seen`, same tri-state as beetles/wax moth (null = didn't look, false = looked and clear, true = found). Ants and earwigs are real and none of them are beetles or wax moths. Shown on the inspection detail screen with the other pest rows, and as a `spider` fact on the timeline card when found. The DB column keeps the shorter name `other_insects_seen`; "harmful" lives in the label, where it is the part that matters.
+- A **note field for the pests section** was built and **removed the same day at the user's request** — the general inspection note already takes "which insect", and a second note box in the middle of the toggles was one more thing to scroll past with gloves on. Migration 0005 was regenerated from scratch rather than adding a drop-column step, because it had never been applied on a device. Same instinct as the condition score: keep it simple.
+
+## Then (M6 — Photos & voice)
+
+- [ ] Attach compressed photos to inspections (camera + gallery) — expo-image-picker + expo-image-manipulator, ~200 KB / 1280 px longest side
+- [ ] On-device voice dictation into the inspection note, TR + EN (expo-speech-recognition; fallback = keyboard mic)
+- [ ] Both are new dependencies → ask before adding (working rule 3); both are listed in master prompt §4, so they are pre-approved in principle
+- [ ] **Proposed, needs a decision (rule 7):** a removal reminder for the gear that must come off — a drone trap frame left past capping breeds the very mites it was meant to catch (~21 days), and winter insulation has to come off in spring. This would be a new rule (R7) reading `equipment.added_at`, not a change to R1. Not built — it was out of M5b's scope and needs your thresholds.
 
 ## Decisions log
 
@@ -110,6 +178,23 @@
 - M4: jest pinned to 29.7.0 (react-native hoists jest-environment-node@29 — jest 30 breaks; see M4 section)
 - Multi-hive operations (user request 2026-07-07): multi-select tasks = M4b add-on; hive→hive transfer log = M5; transfers capture what+quantity, both-directions history, reason note, non-frame items too
 - User flagged rich note-taking as important ("I need to remember a lot"). v1 = free-text notes everywhere; a proper note system (search across notes? tags?) is a post-v1 discussion — revisit at M11 planning
+- M5 split into M5a (queens + treatments + R2/R4 wiring) and M5b (equipment + transfers + R1 wiring) — the original M5 was four features plus two rule wirings plus a migration, too big for one device-testable session
+- M5a: queen age shown in months only (not "2 years 3 months") — matches the M5 acceptance line and reads more precisely for a queen's second summer
+- M5a: the five queen mark colors are real paint colors, not theme tokens — they live once in `src/components/MarkColorPicker.tsx` (`MARK_COLOR_SWATCH`) and no screen writes a hex itself. Same reasoning as the hive-type illustrations: they are pictures of physical things, identical in both themes
+- M5a: R4 check-off asks "start a treatment / just mark done" instead of clearing the row (user idea) — keeps the mite count and the treatment that answered it connected
+- M5a: adding treatment products needs NO migration (text column, TS-only enum) — the same is true for hive types
+- M5c: no year-based queen mark color suggestion (user decision) — a suggestion you have to undo is worse than none. The five colors are offered with nothing preselected
+- M5c: an inspection's date is not editable; correcting an inspection can RETRACT its rule tasks, but saving a new one never retracts an older rule task
+- M5c: the coarse healthy/warning/urgent status still exists in the DB and still drives tasks and notifications, but is no longer displayed anywhere ("don't say check soon")
+- **M5d: NO computed health/condition verdict in the app (user decision 2026-08-12, "I prefer it to be kept simple").** The hive list and detail state the last inspection date; the beekeeper judges the colony. A full scoring model was built and deleted the same day — see its section above before proposing anything like it again
+- M5d: "not seen" is never treated as "not there" anywhere in the app — a beekeeper can easily miss a queen or eggs. R3 schedules a recheck rather than declaring a hive queenless, and that stays the only response
+- M5b: coumaphos is two products, not one (user decision 2026-08-12) — strips sit in the hive six weeks, the trickle is two doses a week apart. A single product would date the "take it off" reminder five weeks wrong
+- M5b: a transfer is ONE row read from two sides, never two rows. Two rows could drift apart, and deleting one would leave the other claiming a move that no longer happened
+- M5b: the transfer form asks "this hive gave / this hive received" rather than picking two hives from a list — you are standing at one of them, and the direction is the only thing that can be recorded backwards
+- M5b: transfers fire no rules. Moving brood changes a colony, but by how much is the beekeeper's judgement — same principle as the deleted condition score
+- M5b: R1 fires when equipment is ADDED, never when an entry is edited — correcting a typo must not book a second chore (the same reasoning as M5c's "editing an inspection retracts, saving a new one does not")
+- M5e (user request 2026-08-12): a summary line that does not fit SLIDES, it does not truncate. Opening a whole screen to read the rest of six words is the kind of tax this app is supposed to remove. Tap still opens the history — sliding and tapping coexist on the same row
+- M5e: NO separate note for pests (user decision 2026-08-12, built then removed the same day). "Other harmful insects — yes" plus the general inspection note is enough; a second note box between the toggles was one more thing to scroll past in the field
 
 ## Known bugs
 
@@ -118,11 +203,14 @@
 ## Notes for next session
 
 - M2+M3 were committed TOGETHER on 2026-07-07 (`ddde0d1` — the separate "M2 commit" recorded earlier never actually happened; working tree had both). assets/hive-types/ is included.
-- M4 commit (after device acceptance): `feat(assistant): M4 rules engine, Today screen, tasks, local notifications`
-- User must run `npm install` on the Mac before testing M4 (new deps: expo-notifications, jest toolchain) — then `npx expo start -c`
+- M5a+M5b+M5c+M5d+M5e commit (after device acceptance): `feat(queens,treatments,inspections,equipment): M5a queen tracker & treatment log, M5b equipment & transfers, M5c inspection editing, M5d recency, M5e sliding summaries & other insects`
+- **NO `npm install` needed** — no new dependencies anywhere in M5a/M5b/M5c/M5d/M5e. Just `npx expo start` (add `-c` if anything looks stale). Migrations 0003, 0004 and 0005 apply themselves on first launch
+- Device checklist: queen add/replace + age in months, NO color preselected; treatment add shows the last-treatment warning; "end treatment" closes the end-reminder and creates the recount task; high varroa count (alcohol wash, >9 mites in season) → check off "Plan varroa treatment" → 3-way prompt; swipe an inspection each way (edit / delete) and tap one to view it; edit a "no queen seen" to "yes" and watch the recheck task disappear; hive list shows "Inspected X ago" tinted by age; **add a deep super and check Today for the fill-check task 10 days out**; **take it off again from the equipment screen**; **record a transfer from one hive and confirm the OTHER hive's list shows the same move the other way round**; **put enough equipment on one hive that the summary line overflows, then drag it sideways with a finger and check a tap still opens the list**; **log an inspection with "other harmful insects — yes" and check it survives to the detail screen and the timeline card**; both themes, both languages, airplane mode
+- TR terminology NOT yet device-verified — "İlaçlama" for treatments, "Sessiz ana değişimi" for supersedure, "Oğuldan" for swarm origin, "Kovana verildi" for the introduction date, the product names, and all of M5b's equipment/transfer wording ("Derin kat", "Yarım kat", "Kuluçkalık", "Ana arı ızgarası", "Erkek arı çerçevesi", "Polen tuzağı", "Kışlık yalıtım", "Yavrulu çerçeve", "Ana arı memesi", "Arı (silkme)", "Aktarımlar")
 - Terminal gotcha (happened once): user ran npm/expo commands in `~` instead of the project folder — always `cd ~/dev/beearc` first
 - Metro gotcha (2026-07-07): stale Metro cache made asset PNGs "disappear" — fix: `npx expo start -c` and scan the QR fresh
-- After every schema change: `npm run db:generate` (runs drizzle-kit + build-migrations.mjs), bump `SCHEMA_VERSION` in `src/db/DbProvider.tsx` (still 2 — M4 needed no schema change, tasks table existed since 0000)
+- After every schema change: `npm run db:generate` (runs drizzle-kit + build-migrations.mjs), bump `SCHEMA_VERSION` in `src/db/DbProvider.tsx` — **now 5**, migrations 0000→0004. Adding values to a TS-only enum on a `text` column (hive types, treatment products, equipment items) needs NO migration; db:generate says "No schema changes"
+- Stale Metro servers: a leftover `expo start` from a previous session can hold port 8081 and make the next run offer 8082. `lsof -nP -iTCP:8081 -sTCP:LISTEN` finds it; either kill it or just accept the new port
 - Typed-routes errors in the editor disappear after `npx expo start` regenerates `.expo/types`
 - User (beekeeper, TR domain expert) verifies all new Turkish beekeeping terminology each milestone — M4 TR strings not yet device-verified
 - Everything must keep running in plain Expo Go until M9 (dev build). Note: local notifications work in Expo Go; only remote push was removed (SDK 53+, Android)

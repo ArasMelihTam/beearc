@@ -120,11 +120,20 @@ export function defaultRuleSettings(latitude?: number | null): RuleSettings {
     stickyBoardPerDay: 10,
     inspectionOverdueDays: 21,
     ...defaultSeasonWindows(latitude),
+    // How long each product normally stays on the hive (R2 uses this to date
+    // the "end / remove treatment" reminder). The acids were confirmed by the
+    // beekeeper at M4; the strips are 6-week products. Coumaphos comes in both
+    // forms locally (confirmed 2026-08-12), hence two entries: the strips sit
+    // in the hive for six weeks, the trickle is two doses a week apart.
     treatmentDurationDays: {
       formic_acid: 14,
       oxalic_acid: 1,
       thymol: 28,
       amitraz: 42,
+      flumethrin: 42,
+      tau_fluvalinate: 42,
+      coumaphos_strip: 42,
+      coumaphos_trickle: 7,
       other: null,
     },
     superCheckDays: 10,

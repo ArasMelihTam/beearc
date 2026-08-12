@@ -13,7 +13,7 @@ import { schemaVersion } from './schema';
 import { nowIso } from './util';
 
 /** Bump on every new migration; written to the schema_version table (§6). */
-const SCHEMA_VERSION = 3; // 3 = M4b tasks.deleted_at (soft delete for tasks)
+const SCHEMA_VERSION = 6; // 6 = inspections.other_insects_seen
 
 /**
  * Gates the whole app behind two startup steps:

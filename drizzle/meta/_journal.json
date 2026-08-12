@@ -22,6 +22,27 @@
       "when": 1783437583512,
       "tag": "0002_breezy_wild_child",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1786149488920,
+      "tag": "0003_bored_elektra",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1786526033834,
+      "tag": "0004_clever_spitfire",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1786537994252,
+      "tag": "0005_friendly_ultimatum",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+ALTER TABLE `inspections` ADD `deleted_at` text;
