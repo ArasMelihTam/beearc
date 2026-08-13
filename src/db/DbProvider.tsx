@@ -16,6 +16,18 @@ import { nowIso } from './util';
 const SCHEMA_VERSION = 6; // 6 = inspections.other_insects_seen
 
 /**
+ * Drizzle wraps the real SQLite failure in a DrizzleError whose message only
+ * names the query, so the screen used to say WHICH statement failed but never
+ * WHY ("duplicate column name: …" was hidden in `cause`). Unwrap one level —
+ * this text is the only diagnostic a user in a field can send us.
+ */
+function errorDetail(error: Error): string {
+  const { cause } = error as { cause?: unknown };
+  if (cause instanceof Error && cause.message) return `${error.message}\n\n${cause.message}`;
+  return error.message;
+}
+
+/**
  * Gates the whole app behind two startup steps:
  * 1. Run pending SQL migrations (creates/updates tables on-device, offline).
  * 2. Hydrate saved settings (theme + language) so choices survive restarts.
@@ -53,7 +65,7 @@ export function DbProvider({ children }: { children: ReactNode }) {
     return (
       <View style={[styles.center, { backgroundColor: tokens.background }]}>
         <Text style={[styles.errorText, { color: tokens.text }]}>{t('db.migrationError')}</Text>
-        <Text style={[styles.errorDetail, { color: tokens.textMuted }]}>{error.message}</Text>
+        <Text style={[styles.errorDetail, { color: tokens.textMuted }]}>{errorDetail(error)}</Text>
       </View>
     );
   }

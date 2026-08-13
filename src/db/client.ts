@@ -1,5 +1,6 @@
 import { openDatabaseSync } from 'expo-sqlite';
 import { drizzle } from 'drizzle-orm/expo-sqlite';
+import { repairMigrationLedger } from './repair';
 import * as schema from './schema';
 
 /**
@@ -14,5 +15,10 @@ const expoDb = openDatabaseSync('beearc.db');
 // WAL = write-ahead logging: safer + faster writes on mobile.
 // foreign_keys: SQLite doesn't enforce FK constraints unless asked.
 expoDb.execSync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
+
+// Heals one specific broken-ledger case before migrations run. No-op on a
+// healthy database — see src/db/repair.ts for the full story. Called here, at
+// import time, because it MUST happen before useMigrations' effect fires.
+repairMigrationLedger(expoDb);
 
 export const db = drizzle(expoDb, { schema });

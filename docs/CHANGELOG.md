@@ -81,6 +81,8 @@ All notable changes to Beearc. Format loosely follows [Keep a Changelog](https:/
 
 - M4b: Swipe directions were mirrored (edit/delete swapped, edit fired from the wrong gesture) — device-found; the library reports the physical swipe direction, not the panel side. Editing is now swipe-only (tap-to-edit removed)
 - M4b: iOS crash "Cannot cast 'nil' for field 'body'" when scheduling a notification without a hive label — optional fields must be omitted, not passed as undefined; notification failures no longer break task saving
+- M5: App could not open — "Failed to run the query 'ALTER TABLE `inspections` ADD `other_insects_seen` integer'". Migration 0005 had been regenerated after already running on the device, and drizzle re-applies any migration dated later than the newest ledger row. `repairMigrationLedger()` now records the migration as applied when its column is already present, so the chain completes without losing any data
+- M5: The database error screen showed which query failed but not why (drizzle hides the SQLite reason in `error.cause`) — the underlying message is now shown too
 
 ### Fixed
 
