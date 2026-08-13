@@ -8,7 +8,7 @@
 
 **M6 — Photos: ✅ code complete (2026-08-13), committed as `9e14c00`, device acceptance PENDING.** Voice is NOT in M6; it moved to M9 (user decision — see the decisions log). Details in the M6 section below.
 
-**⚠️ `main` is 2 commits AHEAD of `origin/main` — `03e7453` (the migration-ledger crash fix) and `9e14c00` (all of M6) exist only on this Mac.** Every earlier milestone was pushed, so this is a deviation. Push them.
+**Push state: ✅ in sync.** `03e7453` (the migration-ledger crash fix), `9e14c00` (all of M6) and `525e0a5` (this file) were pushed to `origin/main` on 2026-08-13.
 
 **M5a + M5b + M5c + M5d + M5e: ✅ code complete (2026-08-12), committed as `ed82e85`, device acceptance PENDING — the phone DID run M5 code in Expo Go on 2026-08-12 during development (that is how the withdrawn `0005_slow_brother_voodoo` reached its migration ledger); the first launch AFTER 0005 was regenerated, on 2026-08-13, hit the migration-ledger crash, now fixed (see the fixed bug below). The acceptance checklist still has to be run on a phone. M5 and M6 will be tested together.** M5 was split into M5a (queens, treatments, R2 + R4 wiring) and M5b (equipment, transfers, R1 wiring). M5c, M5d and M5e are user-requested blocks: M5c and M5d landed before M5b (inspection viewing/editing/deleting, elapsed-time wording, last-inspection recency on the hive list), M5e after it (sliding summary lines, "other harmful insects seen"). A hive condition score was built in M5c and **removed again on 2026-08-12** at the user's request (see its section below).
 
