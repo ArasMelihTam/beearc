@@ -14,6 +14,7 @@ import { useTheme } from '@/src/theme/useTheme';
 import { sizes, sp } from '@/src/theme/tokens';
 import { ChipPicker } from './ChipPicker';
 import { FormField } from './FormField';
+import { PhotoPicker } from './PhotoPicker';
 import { PrimaryButton } from './PrimaryButton';
 import { RatingRow } from './RatingRow';
 import { ToggleRow } from './ToggleRow';
@@ -43,14 +44,17 @@ export type InspectionFactor = (typeof INSPECTION_FACTORS)[number];
 export function InspectionForm({
   factors,
   initial,
+  initialPhotos,
   submitLabel,
   onSubmit,
 }: {
   factors: readonly InspectionFactor[];
   /** Editing an existing record (M5c) instead of entering a fresh one. */
   initial?: Inspection;
+  /** Photo file names already attached (M6) — empty for a new inspection. */
+  initialPhotos?: string[];
   submitLabel?: string;
-  onSubmit: (input: InspectionInput) => void;
+  onSubmit: (input: InspectionInput, photoFileNames: string[]) => void;
 }) {
   const has = (f: InspectionFactor) => factors.includes(f);
   const { t } = useTranslation();
@@ -78,6 +82,7 @@ export function InspectionForm({
   const [otherInsectsSeen, setOtherInsectsSeen] = useState(initial?.otherInsectsSeen ?? false);
   const [diseaseSignsSeen, setDiseaseSignsSeen] = useState(initial?.diseaseSignsSeen ?? false);
   const [note, setNote] = useState(initial?.noteText ?? '');
+  const [photos, setPhotos] = useState<string[]>(initialPhotos ?? []);
 
   const handleSave = () => {
     let varroaCount: number | null = null;
@@ -107,7 +112,7 @@ export function InspectionForm({
       otherInsectsSeen: has('pests') ? otherInsectsSeen : null,
       diseaseSignsSeen: has('pests') ? diseaseSignsSeen : null,
       noteText: note || null,
-    });
+    }, photos);
   };
 
   return (
@@ -232,6 +237,10 @@ export function InspectionForm({
           placeholder={t('inspections.notePlaceholder')}
           multiline
         />
+
+        {/* Last, after the note: photos are the thing you reach for when
+            words are not enough, and they cost a moment of standing still. */}
+        <PhotoPicker fileNames={photos} onChange={setPhotos} />
       </ScrollView>
       <PrimaryButton
         label={submitLabel ?? t('inspections.save')}

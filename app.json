@@ -39,8 +39,19 @@
           }
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Beearc adds photos you choose to your hive inspection records. Photos stay on this phone.",
+          "cameraPermission": "Beearc uses the camera to photograph frames and add them to your hive inspection records. Photos stay on this phone."
+        }
+      ]
     ],
+    "locales": {
+      "en": "./assets/locales/en.json",
+      "tr": "./assets/locales/tr.json"
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

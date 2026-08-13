@@ -8,7 +8,8 @@
   "common": {
     "save": "Save",
     "cancel": "Cancel",
-    "archive": "Archive"
+    "archive": "Archive",
+    "close": "Close"
   },
   "elapsed": {
     "today": "today",
@@ -217,6 +218,24 @@
     "delete": "Delete",
     "deleteTitle": "Delete this inspection?",
     "deleteMessage": "It leaves the timeline and stops counting toward this hive's condition. The record is kept, never erased."
+  },
+  "photos": {
+    "section": "Photos",
+    "add": "Add photo",
+    "addTitle": "Add a photo",
+    "takePhoto": "Take a photo",
+    "chooseFromLibrary": "Choose from library",
+    "importing": "Preparing…",
+    "importFailed": "That photo could not be added. Please try again.",
+    "cameraDenied": "Beearc needs permission to use the camera. You can turn it on in your phone settings.",
+    "libraryDenied": "Beearc needs permission to open your photos. You can turn it on in your phone settings.",
+    "remove": "Remove",
+    "removeTitle": "Remove this photo?",
+    "removeMessage": "It comes off this inspection when you save. Nothing else is deleted.",
+    "viewPhoto": "Photo {{number}}",
+    "counter": "{{current}} / {{total}}",
+    "count_one": "{{count}} photo",
+    "count_other": "{{count}} photos"
   },
   "queens": {
     "title": "Queen",

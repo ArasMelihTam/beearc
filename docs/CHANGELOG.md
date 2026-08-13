@@ -69,6 +69,12 @@ All notable changes to Beearc. Format loosely follows [Keep a Changelog](https:/
 - M5e: Summary lines on the hive detail slide sideways with a finger — a long equipment list is read in place instead of being cut off with "…"; tapping the row still opens its history
 - M5e: New inspection finding "Other harmful insects seen" (ants, earwigs — none of them beetles or wax moths), with the same honest tri-state as the other pests: not checked / checked and clear / found (migration 0005)
 
+- M6: Attach photos to an inspection from the camera or the photo library, on both the entry and edit screens
+- M6: Photos are resized to 1280 px on the longest side and compressed to roughly 200 KB, so a full season costs megabytes rather than gigabytes
+- M6: Inspection detail shows the photos; tapping one opens it full screen. The hive timeline card shows a camera icon and count
+- M6: Photos are stored on the device and never leave it — the whole feature works in airplane mode
+- M6: Unreferenced photo files are cleaned up at startup, so an abandoned inspection leaves nothing behind
+
 ### Changed
 
 - M5c: Queen mark colors are no longer suggested from the year — the picker offers the five colors with nothing preselected

@@ -8,7 +8,8 @@
   "common": {
     "save": "Kaydet",
     "cancel": "Vazgeç",
-    "archive": "Arşivle"
+    "archive": "Arşivle",
+    "close": "Kapat"
   },
   "elapsed": {
     "today": "bugün",
@@ -217,6 +218,24 @@
     "delete": "Sil",
     "deleteTitle": "Bu kontrol silinsin mi?",
     "deleteMessage": "Zaman çizelgesinden kalkar ve kovanın durum puanına artık sayılmaz. Kayıt saklanır, asla silinmez."
+  },
+  "photos": {
+    "section": "Fotoğraflar",
+    "add": "Fotoğraf ekle",
+    "addTitle": "Fotoğraf ekle",
+    "takePhoto": "Fotoğraf çek",
+    "chooseFromLibrary": "Galeriden seç",
+    "importing": "Hazırlanıyor…",
+    "importFailed": "Fotoğraf eklenemedi. Lütfen tekrar deneyin.",
+    "cameraDenied": "Beearc’in kamerayı kullanması için izin gerekiyor. Telefon ayarlarından açabilirsiniz.",
+    "libraryDenied": "Beearc’in fotoğraflarınızı açması için izin gerekiyor. Telefon ayarlarından açabilirsiniz.",
+    "remove": "Kaldır",
+    "removeTitle": "Bu fotoğraf kaldırılsın mı?",
+    "removeMessage": "Kaydettiğinizde bu kontrolden çıkar. Başka hiçbir şey silinmez.",
+    "viewPhoto": "Fotoğraf {{number}}",
+    "counter": "{{current}} / {{total}}",
+    "count_one": "{{count}} fotoğraf",
+    "count_other": "{{count}} fotoğraf"
   },
   "queens": {
     "title": "Ana arı",

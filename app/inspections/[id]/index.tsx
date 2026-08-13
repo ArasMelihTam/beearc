@@ -3,7 +3,9 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { PhotoStrip } from '@/src/components/PhotoStrip';
 import { Screen } from '@/src/components/Screen';
+import { inspectionPhotosRepo } from '@/src/db/repos/inspectionPhotosRepo';
 import { inspectionsRepo, type Inspection } from '@/src/db/repos/inspectionsRepo';
 import { formatDateTime } from '@/src/i18n/formatDate';
 import { formatElapsed } from '@/src/i18n/formatElapsed';
@@ -24,6 +26,7 @@ export default function InspectionDetailScreen() {
   const { tokens } = useTheme();
   const router = useRouter();
   const [inspection, setInspection] = useState<Inspection | null>(null);
+  const [photos, setPhotos] = useState<string[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -36,6 +39,9 @@ export default function InspectionDetailScreen() {
         }
         setInspection(row);
       });
+      // Refetched on focus, not just on mount: coming back from the edit
+      // screen is exactly when the photo list has changed.
+      inspectionPhotosRepo.fileNamesByInspection(id).then(setPhotos);
     }, [id, router])
   );
 
@@ -187,6 +193,15 @@ export default function InspectionDetailScreen() {
           value={finding(inspection.diseaseSignsSeen)}
           tone={findingTone(inspection.diseaseSignsSeen)}
         />
+
+        {photos.length > 0 ? (
+          <>
+            <Text style={[styles.sectionHeader, { color: tokens.textMuted }]}>
+              {t('photos.section')}
+            </Text>
+            <PhotoStrip fileNames={photos} />
+          </>
+        ) : null}
 
         {inspection.noteText ? (
           <>

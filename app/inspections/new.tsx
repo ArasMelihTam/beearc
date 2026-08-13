@@ -10,6 +10,7 @@ import {
   type InspectionFactor,
 } from '@/src/components/InspectionForm';
 import { PrimaryButton } from '@/src/components/PrimaryButton';
+import { inspectionPhotosRepo } from '@/src/db/repos/inspectionPhotosRepo';
 import { inspectionsRepo } from '@/src/db/repos/inspectionsRepo';
 import { hivesRepo, type Hive } from '@/src/db/repos/hivesRepo';
 import { SETTING_KEYS, settingsRepo } from '@/src/db/repos/settingsRepo';
@@ -141,8 +142,11 @@ export default function NewInspectionScreen() {
     <Screen title={`${t('inspections.new')} — ${hive.label}`} onBack={() => setStep('factors')}>
       <InspectionForm
         factors={factors}
-        onSubmit={async (input) => {
+        onSubmit={async (input, photoFileNames) => {
           const saved = await inspectionsRepo.create(hiveId, input);
+          // Photos are already resized and stored on disk; this is only the
+          // row that ties them to the inspection that now exists (M6).
+          await inspectionPhotosRepo.setForInspection(saved.id, photoFileNames);
           // M4: the assistant reads the fresh inspection — it may create
           // tasks (R3/R4/R5) and recolor the hive before we're back.
           await applyInspectionRules(saved);

@@ -11,6 +11,7 @@ import { PrimaryButton } from '@/src/components/PrimaryButton';
 import { SummaryRow } from '@/src/components/SummaryRow';
 import { equipmentRepo, type Equipment } from '@/src/db/repos/equipmentRepo';
 import { hivesRepo, type Hive } from '@/src/db/repos/hivesRepo';
+import { inspectionPhotosRepo } from '@/src/db/repos/inspectionPhotosRepo';
 import { inspectionsRepo, type Inspection } from '@/src/db/repos/inspectionsRepo';
 import { queensRepo, type Queen } from '@/src/db/repos/queensRepo';
 import { transfersRepo, type TransferWithHives } from '@/src/db/repos/transfersRepo';
@@ -44,6 +45,7 @@ export default function HiveDetailScreen() {
   const router = useRouter();
   const [hive, setHive] = useState<Hive | null>(null);
   const [timeline, setTimeline] = useState<Inspection[]>([]);
+  const [photoCounts, setPhotoCounts] = useState<Record<string, number>>({});
   const [queen, setQueen] = useState<Queen | null>(null);
   const [lastTreatment, setLastTreatment] = useState<Treatment | null>(null);
   const [onHiveEquipment, setOnHiveEquipment] = useState<Equipment[]>([]);
@@ -68,6 +70,8 @@ export default function HiveDetailScreen() {
       getHiveRecency([h]),
     ]);
     setTimeline(inspections);
+    // One grouped query for the whole timeline, not one per card (M6).
+    setPhotoCounts(await inspectionPhotosRepo.countsByInspections(inspections.map((i) => i.id)));
     setQueen(currentQueen);
     setLastTreatment(treatment);
     setOnHiveEquipment(gear);
@@ -204,6 +208,7 @@ export default function HiveDetailScreen() {
         renderItem={({ item }) => (
           <InspectionRow
             item={item}
+            photoCount={photoCounts[item.id] ?? 0}
             overdueDays={overdueDays}
             onOpen={() => router.push(`/inspections/${item.id}`)}
             onEdit={() => router.push(`/inspections/${item.id}/edit`)}
@@ -229,12 +234,14 @@ export default function HiveDetailScreen() {
  */
 function InspectionRow({
   item,
+  photoCount,
   overdueDays,
   onOpen,
   onEdit,
   onRemove,
 }: {
   item: Inspection;
+  photoCount: number;
   overdueDays: number;
   onOpen: () => void;
   onEdit: () => void;
@@ -354,6 +361,14 @@ function InspectionRow({
               showAnswer={false}
               label={t('inspections.diseaseSignsSeen')}
             />
+          ) : null}
+          {photoCount > 0 ? (
+            <View style={styles.fact}>
+              <MaterialCommunityIcons name="camera-outline" size={18} color={tokens.text} />
+              <Text style={[styles.factText, { color: tokens.text }]}>
+                {t('photos.count', { count: photoCount })}
+              </Text>
+            </View>
           ) : null}
         </View>
         {item.noteText ? (

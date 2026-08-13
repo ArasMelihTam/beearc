@@ -4,10 +4,12 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { useTranslation } from 'react-i18next';
 import migrations from '@/drizzle/migrations';
 import i18n from '@/src/i18n';
+import { sweepOrphanPhotos } from '@/src/photos/photoStore';
 import { useSettings } from '@/src/store/settings';
 import { sizes, sp } from '@/src/theme/tokens';
 import { useTheme } from '@/src/theme/useTheme';
 import { db } from './client';
+import { inspectionPhotosRepo } from './repos/inspectionPhotosRepo';
 import { SETTING_KEYS, settingsRepo } from './repos/settingsRepo';
 import { schemaVersion } from './schema';
 import { nowIso } from './util';
@@ -46,6 +48,16 @@ export function DbProvider({ children }: { children: ReactNode }) {
         .insert(schemaVersion)
         .values({ version: SCHEMA_VERSION, appliedAt: nowIso() })
         .onConflictDoNothing();
+
+      // Housekeeping (M6): delete photo files no inspection refers to.
+      // Startup is the only safe moment — nothing is half-entered yet. See
+      // sweepOrphanPhotos for why photos are written before their row exists.
+      inspectionPhotosRepo
+        .allFileNames()
+        .then((names) => sweepOrphanPhotos(new Set(names)))
+        .catch(() => {
+          // Tidying is never worth blocking the app for.
+        });
 
       const [theme, lang] = await Promise.all([
         settingsRepo.get(SETTING_KEYS.themeMode),
