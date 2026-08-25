@@ -114,6 +114,26 @@ export const tasksRepo = {
       .where(eq(tasks.id, id));
   },
 
+  /**
+   * A hive's still-open tasks. Used when the hive itself is deleted: they
+   * have to go with it, or Today keeps nagging about a hive that is no
+   * longer in any list (`listOpen` joins the hive but doesn't filter on it).
+   */
+  async listOpenByHive(hiveId: string): Promise<Task[]> {
+    return db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.hiveId, hiveId), isNull(tasks.doneAt), isNull(tasks.deletedAt)));
+  },
+
+  /** Open tasks pinned to the apiary itself rather than to one of its hives. */
+  async listOpenByApiary(apiaryId: string): Promise<Task[]> {
+    return db
+      .select()
+      .from(tasks)
+      .where(and(eq(tasks.apiaryId, apiaryId), isNull(tasks.doneAt), isNull(tasks.deletedAt)));
+  },
+
   /** Soft delete (M4b) — hidden everywhere, kept forever, like §6 archives. */
   async softDelete(id: string): Promise<void> {
     await db.update(tasks).set({ deletedAt: nowIso() }).where(eq(tasks.id, id));

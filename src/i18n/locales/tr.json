@@ -8,7 +8,8 @@
   "common": {
     "save": "Kaydet",
     "cancel": "Vazgeç",
-    "archive": "Arşivle",
+    "edit": "Düzenle",
+    "delete": "Sil",
     "close": "Kapat"
   },
   "elapsed": {
@@ -40,7 +41,7 @@
     "upcoming": "Yaklaşan",
     "doneToday": "Bugün tamamlanan",
     "addTask": "Görev ekle",
-    "swipeHint": "Bir görevi düzenlemek için sola kaydır. Silmek için sağa kaydır. Tamamlamak için yuvarlağa dokun — geri almak için tekrar dokun.",
+    "swipeHint": "Bir görevi düzenlemek için sağa kaydır. Silmek için sola kaydır. Tamamlamak için yuvarlağa dokun — geri almak için tekrar dokun.",
     "swipeHintGotIt": "Anladım"
   },
   "tasks": {
@@ -60,7 +61,6 @@
     "multiHint": "{{count}} kovan seçildi — her biri ayrı görev olur, böylece tek tek işaretleyebilirsin.",
     "save": "Görevi kaydet",
     "edit": "Görevi düzenle",
-    "delete": "Sil",
     "history": "Görev geçmişi",
     "historyEmpty": "Henüz tamamlanan görev yok. İşaretlenen görevler gece yarısına kadar Bugün'de kalır, sonra buraya taşınır.",
     "ruleLocked": "Asistan oluşturdu — başlık ve kovan sabittir. Tarihi değiştirebilir veya ayrıntı ekleyebilirsin."
@@ -97,9 +97,11 @@
     "notes": "Notlar",
     "nameRequired": "Lütfen bir ad girin.",
     "latLngInvalid": "Koordinatlar hatalı görünüyor — enlem -90 ile 90, boylam -180 ile 180 arasında olmalı.",
-    "archiveTitle": "Bu arılık arşivlensin mi?",
-    "archiveMessage": "Listelerden gizlenecek. Geçmişi saklanır — hiçbir şey silinmez.",
-    "archiveBlocked": "Bu arılıkta hâlâ aktif kovan var. Önce onları arşivleyin."
+    "delete": "Arılığı sil",
+    "deleteTitle": "Bu arılık silinsin mi?",
+    "deleteMessage": "Listelerinden kaldırılacak. Kayıtları uygulamanın verisinde kalır, dışa aktarma ve yedeklerde yer alır — ama buradan geri getiremezsin.",
+    "deleteWithHives_one": "Burada duran {{count}} kovan da silinecek. Kontrol kayıtları uygulamanın verisinde kalır, ama kovan listelerinden kaldırılır ve buradan geri getiremezsin.",
+    "deleteWithHives_other": "Burada duran {{count}} kovan da silinecek. Kontrol kayıtları uygulamanın verisinde kalır, ama kovanlar listelerinden kaldırılır ve buradan geri getiremezsin."
   },
   "hives": {
     "empty": "Burada henüz kovan yok. İlk kovanını aşağıdan ekle.",
@@ -111,8 +113,9 @@
     "labelRequired": "Lütfen bir etiket girin.",
     "type": "Kovan tipi",
     "notes": "Notlar",
-    "archiveTitle": "Bu kovan arşivlensin mi?",
-    "archiveMessage": "Listelerden gizlenecek. Geçmişi saklanır — hiçbir şey silinmez."
+    "delete": "Kovanı sil",
+    "deleteTitle": "Bu kovan silinsin mi?",
+    "deleteMessage": "Listelerinden kaldırılacak, açık görevleri de onunla birlikte silinir. Kontrolleri, ana arıları ve ilaçlamaları uygulamanın verisinde kalır, dışa aktarma ve yedeklerde yer alır — ama kovanı buradan geri getiremezsin."
   },
   "hiveType": {
     "langstroth": {

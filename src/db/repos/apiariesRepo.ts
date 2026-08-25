@@ -57,19 +57,25 @@ export const apiariesRepo = {
       .where(eq(apiaries.id, id));
   },
 
-  /**
-   * Soft delete (§6): sets archived_at, keeps all history.
-   * Refuses if the apiary still has active hives — archive those first,
-   * so no hive ever silently disappears from lists.
-   */
-  async archive(id: string): Promise<{ ok: boolean; activeHives: number }> {
+  /** How many active hives stand here — the number the delete prompt names. */
+  async activeHiveCount(id: string): Promise<number> {
     const [row] = await db
       .select({ n: count() })
       .from(hives)
       .where(and(eq(hives.apiaryId, id), isNull(hives.archivedAt)));
-    const activeHives = row?.n ?? 0;
-    if (activeHives > 0) return { ok: false, activeHives };
+    return row?.n ?? 0;
+  },
+
+  /**
+   * Delete an apiary. Soft, per §6 — `archived_at`, nothing destroyed.
+   *
+   * This used to refuse while the apiary still had hives (M2). It no longer
+   * does: being told to delete forty hives one at a time before you may
+   * delete the yard you sold is not a rule, it's a chore. The confirmation
+   * names the hive count instead, and `deleteApiary` in logic/status.ts
+   * takes the hives down with it.
+   */
+  async softDelete(id: string): Promise<void> {
     await db.update(apiaries).set({ archivedAt: nowIso() }).where(eq(apiaries.id, id));
-    return { ok: true, activeHives: 0 };
   },
 };

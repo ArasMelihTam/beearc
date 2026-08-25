@@ -6,6 +6,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Screen } from '@/src/components/Screen';
 import { HiveForm } from '@/src/components/HiveForm';
 import { hivesRepo, type Hive } from '@/src/db/repos/hivesRepo';
+import { deleteHive } from '@/src/logic/status';
 import { useTheme } from '@/src/theme/useTheme';
 import { sizes } from '@/src/theme/tokens';
 
@@ -20,15 +21,20 @@ export default function EditHiveScreen() {
     if (id) hivesRepo.getById(id).then(setHive);
   }, [id]);
 
-  const handleArchive = () => {
+  /**
+   * The same delete as the swipe on the hive list, kept here for anyone who
+   * hasn't found the gesture. `back()` lands on whichever screen sent us
+   * here; the hive detail screen pops itself when its hive is gone.
+   */
+  const handleDelete = () => {
     if (!hive) return;
-    Alert.alert(t('hives.archiveTitle'), t('hives.archiveMessage'), [
+    Alert.alert(t('hives.deleteTitle'), t('hives.deleteMessage'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
-        text: t('common.archive'),
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
-          await hivesRepo.archive(hive.id);
+          await deleteHive(hive.id);
           router.back();
         },
       },
@@ -44,11 +50,11 @@ export default function EditHiveScreen() {
       right={
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel={t('common.archive')}
-          onPress={handleArchive}
-          style={styles.archiveButton}
+          accessibilityLabel={t('hives.delete')}
+          onPress={handleDelete}
+          style={styles.deleteButton}
         >
-          <MaterialCommunityIcons name="archive-outline" size={24} color={tokens.statusWarning} />
+          <MaterialCommunityIcons name="trash-can-outline" size={24} color={tokens.danger} />
         </TouchableOpacity>
       }
     >
@@ -64,7 +70,7 @@ export default function EditHiveScreen() {
 }
 
 const styles = StyleSheet.create({
-  archiveButton: {
+  deleteButton: {
     width: sizes.tapMin,
     height: sizes.tapMin,
     alignItems: 'center',

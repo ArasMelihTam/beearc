@@ -68,8 +68,25 @@ export const hivesRepo = {
     await db.update(hives).set({ status }).where(eq(hives.id, id));
   },
 
-  /** Soft delete — inspection history stays forever. */
-  async archive(id: string): Promise<void> {
+  /**
+   * Delete a hive. Soft, per §6: the row keeps its `archived_at` stamp and
+   * every inspection, queen, treatment and photo stays in the database, so
+   * an export or backup still carries the colony's whole history. It simply
+   * stops appearing anywhere in the app.
+   *
+   * Call `deleteHive` in logic/status.ts instead of this — a hive's open
+   * tasks have to go with it, and notifications have to be cancelled.
+   */
+  async softDelete(id: string): Promise<void> {
     await db.update(hives).set({ archivedAt: nowIso() }).where(eq(hives.id, id));
+  },
+
+  /** Ids of an apiary's active hives — the cascade list when it's deleted. */
+  async activeIdsByApiary(apiaryId: string): Promise<string[]> {
+    const rows = await db
+      .select({ id: hives.id })
+      .from(hives)
+      .where(and(eq(hives.apiaryId, apiaryId), isNull(hives.archivedAt)));
+    return rows.map((r) => r.id);
   },
 };

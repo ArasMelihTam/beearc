@@ -8,7 +8,8 @@
   "common": {
     "save": "Save",
     "cancel": "Cancel",
-    "archive": "Archive",
+    "edit": "Edit",
+    "delete": "Delete",
     "close": "Close"
   },
   "elapsed": {
@@ -40,7 +41,7 @@
     "upcoming": "Upcoming",
     "doneToday": "Done today",
     "addTask": "Add task",
-    "swipeHint": "Swipe a task to the left to edit it. Swipe right to delete. Tap the circle to mark it done — tap again to undo.",
+    "swipeHint": "Swipe a task to the right to edit it. Swipe left to delete. Tap the circle to mark it done — tap again to undo.",
     "swipeHintGotIt": "Got it"
   },
   "tasks": {
@@ -60,7 +61,6 @@
     "multiHint": "{{count}} hives selected — each gets its own task, so you can check them off one by one.",
     "save": "Save task",
     "edit": "Edit task",
-    "delete": "Delete",
     "history": "Task history",
     "historyEmpty": "Nothing completed yet. Checked-off tasks stay on Today until midnight, then move here.",
     "ruleLocked": "Created by the assistant — the title and hive are fixed. You can move the date or add details."
@@ -97,9 +97,11 @@
     "notes": "Notes",
     "nameRequired": "Please enter a name.",
     "latLngInvalid": "Those coordinates look wrong — latitude must be between -90 and 90, longitude between -180 and 180.",
-    "archiveTitle": "Archive this apiary?",
-    "archiveMessage": "It will be hidden from your lists. Its history is kept — nothing is deleted.",
-    "archiveBlocked": "This apiary still has active hives. Archive them first."
+    "delete": "Delete apiary",
+    "deleteTitle": "Delete this apiary?",
+    "deleteMessage": "It disappears from your lists. Its records stay in the app's data, so exports and backups still have them — but you cannot bring it back from here.",
+    "deleteWithHives_one": "{{count}} hive stands here and will be deleted with it. Its inspections stay in the app's data, but the hive disappears from your lists and you cannot bring it back from here.",
+    "deleteWithHives_other": "{{count}} hives stand here and will be deleted with it. Their inspections stay in the app's data, but the hives disappear from your lists and you cannot bring them back from here."
   },
   "hives": {
     "empty": "No hives here yet. Add your first hive below.",
@@ -111,8 +113,9 @@
     "labelRequired": "Please enter a label.",
     "type": "Hive type",
     "notes": "Notes",
-    "archiveTitle": "Archive this hive?",
-    "archiveMessage": "It will be hidden from your lists. Its history is kept — nothing is deleted."
+    "delete": "Delete hive",
+    "deleteTitle": "Delete this hive?",
+    "deleteMessage": "It disappears from your lists, and its open tasks go with it. Its inspections, queens and treatments stay in the app's data, so exports and backups still have them — but you cannot bring the hive back from here."
   },
   "hiveType": {
     "langstroth": {

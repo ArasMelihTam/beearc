@@ -74,6 +74,9 @@ All notable changes to Beearc. Format loosely follows [Keep a Changelog](https:/
 - M6: Inspection detail shows the photos; tapping one opens it full screen. The hive timeline card shows a camera icon and count
 - M6: Photos are stored on the device and never leave it — the whole feature works in airplane mode
 - M6: Unreferenced photo files are cleaned up at startup, so an abandoned inspection leaves nothing behind
+- M6b: Apiaries and hives can be deleted — swipe left on any row in the Hives tab, the same gesture as tasks and inspections. Deleting an apiary deletes the hives standing in it, and the confirmation says how many
+- M6b: A hive's open tasks and their reminders are deleted with the hive, so Today never nags about a colony that is gone
+- M6b: `danger` / `onDanger` theme tokens — one red reserved for destructive actions, in both themes
 
 ### Changed
 
@@ -82,6 +85,10 @@ All notable changes to Beearc. Format loosely follows [Keep a Changelog](https:/
 - M5b: Equipment items extended past §6 with brood box, drone trap frame, pollen trap and winter insulation — all things you add and must remember to remove
 - M5b: `equipment` gained a notes column, so an "Other" entry is no longer an unlabelled row
 - M5c: Hive status chips ("Healthy / Check soon / Urgent") removed; the underlying derived status still drives the assistant's tasks and reminders
+- M6b: Delete panels are red (`danger`) instead of slate — red is what "this removes something" looks like. Both themes clear WCAG AA: white on #B3261E is 6.5:1, Dark Umber on #E8776E is 5.2:1
+- M6b: Swipe gestures moved into one `SwipeableRow` component shared by tasks, inspections, apiaries and hives, so the gesture cannot mean different things on different screens
+- M6b: Swipe panels say "Edit" / "Delete" rather than "Edit task" / "Arılığı düzenle" — 96 dp is not enough for a sentence
+- M6b: An apiary with hives in it can now be deleted (M2 refused until every hive was archived first). The hive count is named in the confirmation instead
 
 ### Fixed
 
@@ -89,6 +96,7 @@ All notable changes to Beearc. Format loosely follows [Keep a Changelog](https:/
 - M4b: iOS crash "Cannot cast 'nil' for field 'body'" when scheduling a notification without a hive label — optional fields must be omitted, not passed as undefined; notification failures no longer break task saving
 - M5: App could not open — "Failed to run the query 'ALTER TABLE `inspections` ADD `other_insects_seen` integer'". Migration 0005 had been regenerated after already running on the device, and drizzle re-applies any migration dated later than the newest ledger row. `repairMigrationLedger()` now records the migration as applied when its column is already present, so the chain completes without losing any data
 - M5: The database error screen showed which query failed but not why (drizzle hides the SQLite reason in `error.cause`) — the underlying message is now shown too
+- M6b: The swipe hint on Today told the opposite of what the app does ("swipe left to edit, right to delete") — it sent you to the *edit* gesture when you wanted to delete. The code was right; the hint is now corrected in both languages
 
 ### Fixed
 

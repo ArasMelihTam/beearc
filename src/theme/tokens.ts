@@ -18,6 +18,14 @@ export interface ThemeTokens {
   statusHealthy: string;
   statusWarning: string;
   statusUrgent: string;
+  /**
+   * Destructive actions ONLY (delete panels and buttons) — never a hive
+   * status. Status uses sage/terracotta/slate; red is reserved so that the
+   * one colour meaning "this removes something" is never diluted.
+   */
+  danger: string;
+  /** Text/icons placed ON `danger`. Both pairs clear WCAG AA (§5 rule 1). */
+  onDanger: string;
 }
 
 export const themes: Record<ThemeScheme, ThemeTokens> = {
@@ -32,6 +40,8 @@ export const themes: Record<ThemeScheme, ThemeTokens> = {
     statusHealthy: '#7A9E7E', // Sage
     statusWarning: '#C06E52', // Terracotta
     statusUrgent: '#2C3E50', // Slate
+    danger: '#B3261E', // deep brick red — 6.5:1 with white
+    onDanger: '#FFFFFF',
   },
   dark: {
     primary: '#D29D30',
@@ -44,6 +54,11 @@ export const themes: Record<ThemeScheme, ThemeTokens> = {
     statusHealthy: '#8FB893',
     statusWarning: '#D98B6F',
     statusUrgent: '#8CA6C0',
+    // Dark mode lifts the red the way it lifts every other status colour, so
+    // it stays red against charcoal instead of going muddy. Dark Umber on it
+    // is 5.2:1; white on a red this light would fail.
+    danger: '#E8776E',
+    onDanger: '#3A200C',
   },
 };
 

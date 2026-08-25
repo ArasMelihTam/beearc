@@ -6,6 +6,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Screen } from '@/src/components/Screen';
 import { ApiaryForm } from '@/src/components/ApiaryForm';
 import { apiariesRepo, type Apiary } from '@/src/db/repos/apiariesRepo';
+import { deleteApiary } from '@/src/logic/status';
 import { useTheme } from '@/src/theme/useTheme';
 import { sizes } from '@/src/theme/tokens';
 
@@ -20,21 +21,26 @@ export default function EditApiaryScreen() {
     if (id) apiariesRepo.getById(id).then(setApiary);
   }, [id]);
 
-  const handleArchive = () => {
+  /**
+   * The same delete as the swipe on the apiary list — kept here too, because
+   * this is where you look when you haven't discovered the gesture yet. The
+   * hive count goes in the message: deleting a yard deletes its hives.
+   */
+  const handleDelete = async () => {
     if (!apiary) return;
-    Alert.alert(t('apiaries.archiveTitle'), t('apiaries.archiveMessage'), [
+    const hiveCount = await apiariesRepo.activeHiveCount(apiary.id);
+    const message =
+      hiveCount > 0
+        ? t('apiaries.deleteWithHives', { count: hiveCount })
+        : t('apiaries.deleteMessage');
+    Alert.alert(t('apiaries.deleteTitle'), message, [
       { text: t('common.cancel'), style: 'cancel' },
       {
-        text: t('common.archive'),
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
-          const result = await apiariesRepo.archive(apiary.id);
-          if (!result.ok) {
-            // Data hygiene: an apiary with active hives cannot vanish.
-            Alert.alert(t('apiaries.archiveBlocked'));
-            return;
-          }
-          // Jump past the (now archived) detail screen, back to the list.
+          await deleteApiary(apiary.id);
+          // Jump past the (now deleted) detail screen, back to the list.
           router.dismissTo('/(tabs)/hives');
         },
       },
@@ -50,11 +56,11 @@ export default function EditApiaryScreen() {
       right={
         <TouchableOpacity
           accessibilityRole="button"
-          accessibilityLabel={t('common.archive')}
-          onPress={handleArchive}
-          style={styles.archiveButton}
+          accessibilityLabel={t('apiaries.delete')}
+          onPress={() => void handleDelete()}
+          style={styles.deleteButton}
         >
-          <MaterialCommunityIcons name="archive-outline" size={24} color={tokens.statusWarning} />
+          <MaterialCommunityIcons name="trash-can-outline" size={24} color={tokens.danger} />
         </TouchableOpacity>
       }
     >
@@ -70,7 +76,7 @@ export default function EditApiaryScreen() {
 }
 
 const styles = StyleSheet.create({
-  archiveButton: {
+  deleteButton: {
     width: sizes.tapMin,
     height: sizes.tapMin,
     alignItems: 'center',

@@ -294,6 +294,47 @@ export async function deleteTask(task: Task): Promise<void> {
 }
 
 /**
+ * Delete a hive, and everything that would otherwise outlive it on screen.
+ *
+ * The hive row is soft-deleted (§6 `archived_at`), so its inspections,
+ * queens, treatments, equipment and photos all stay in the database for
+ * export and backup — but its OPEN tasks are deleted with it and their
+ * reminders cancelled. Without that, Today would go on asking you to recheck
+ * a colony that no longer appears anywhere, and a notification would fire
+ * days later for a hive you deleted (`tasksRepo.listOpen` joins the hive but
+ * does not filter on it — deliberately, so history keeps its labels).
+ *
+ * Completed tasks are left alone: they are the record of work you actually
+ * did, and Task history still shows the hive's label.
+ */
+export async function deleteHive(hiveId: string): Promise<void> {
+  const open = await tasksRepo.listOpenByHive(hiveId);
+  for (const task of open) {
+    await tasksRepo.softDelete(task.id);
+    await cancelTaskNotification(task.id);
+  }
+  await hivesRepo.softDelete(hiveId);
+}
+
+/**
+ * Delete an apiary and every hive standing in it.
+ *
+ * The cascade is the point (see `apiariesRepo.softDelete`): you are deleting
+ * a place, and the hives are in it. Each hive goes through `deleteHive`, so
+ * their tasks and reminders are cleaned up the same way. The caller must
+ * have shown the hive count first — this function does not ask.
+ */
+export async function deleteApiary(apiaryId: string): Promise<void> {
+  const hiveIds = await hivesRepo.activeIdsByApiary(apiaryId);
+  for (const hiveId of hiveIds) await deleteHive(hiveId);
+  for (const task of await tasksRepo.listOpenByApiary(apiaryId)) {
+    await tasksRepo.softDelete(task.id);
+    await cancelTaskNotification(task.id);
+  }
+  await apiariesRepo.softDelete(apiaryId);
+}
+
+/**
  * Edit (M4b): persist, re-point the reminder at the new due date, and
  * recompute BOTH the old and new hive if the link moved.
  */

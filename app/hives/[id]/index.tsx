@@ -1,11 +1,8 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import Swipeable, {
-  type SwipeableMethods,
-} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { EmptyState, Screen } from '@/src/components/Screen';
 import { PrimaryButton } from '@/src/components/PrimaryButton';
 import { SummaryRow } from '@/src/components/SummaryRow';
@@ -17,6 +14,7 @@ import { queensRepo, type Queen } from '@/src/db/repos/queensRepo';
 import { transfersRepo, type TransferWithHives } from '@/src/db/repos/transfersRepo';
 import { treatmentsRepo, type Treatment } from '@/src/db/repos/treatmentsRepo';
 import { RecencyLine } from '@/src/components/RecencyLine';
+import { SwipeableRow } from '@/src/components/SwipeableRow';
 import { formatAgo, formatDateTime } from '@/src/i18n/formatDate';
 import { formatQueenAge } from '@/src/i18n/formatQueen';
 import { isQueenAging, queenAgeMonths } from '@/src/logic/queens';
@@ -34,9 +32,10 @@ type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
  * There is deliberately no computed "health score" here (decision 2026-08-12):
  * the app states the facts and the beekeeper judges the colony.
  *
- * Timeline rows carry the same gestures as tasks (M4b): swipe one way to
- * edit, the other to delete. Tapping opens the full record — unlike a task
- * row, that is a harmless read, so a stray glove tap costs nothing.
+ * Timeline rows carry the app's standard gesture (`SwipeableRow`): swipe
+ * right to edit, swipe left to delete. Tapping opens the full record —
+ * unlike a task row, that is a harmless read, so a stray glove tap costs
+ * nothing.
  */
 export default function HiveDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -55,7 +54,7 @@ export default function HiveDetailScreen() {
   const load = useCallback(async () => {
     if (!id) return;
     const h = await hivesRepo.getById(id);
-    // Archived from the edit screen while we were away? Leave quietly.
+    // Deleted from the edit screen while we were away? Leave quietly.
     if (!h || h.archivedAt) {
       router.back();
       return;
@@ -227,10 +226,9 @@ export default function HiveDetailScreen() {
 }
 
 /**
- * One timeline row. Same gesture wiring as TaskRow (M4b) so the two feel
- * identical in the hand — including the library quirk noted there: the
- * `direction` reported by onSwipeableOpen is the PHYSICAL swipe direction,
- * not the side the panel sits on.
+ * One timeline row. Gestures come from `SwipeableRow`, the same component
+ * the task rows use, so the two feel identical in the hand. Tap opens the
+ * inspection — unlike a task row that is a harmless read (M5c).
  */
 function InspectionRow({
   item,
@@ -248,32 +246,7 @@ function InspectionRow({
   onRemove: () => void;
 }) {
   const { t } = useTranslation();
-  const { scheme, tokens } = useTheme();
-  const swipeRef = useRef<SwipeableMethods>(null);
-
-  const editPanel = () => (
-    <View style={[styles.actionPanel, { backgroundColor: tokens.primary }]}>
-      <MaterialCommunityIcons name="pencil" size={26} color={tokens.onPrimary} />
-      <Text style={[styles.actionLabel, { color: tokens.onPrimary }]}>
-        {t('inspections.edit')}
-      </Text>
-    </View>
-  );
-
-  // Same contrast reasoning as the task row: white on slate in light mode,
-  // dark umber on the pale dark-mode slate. Terracotta + white fails AA.
-  const onDelete = scheme === 'dark' ? tokens.onPrimary : '#FFFFFF';
-  const deletePanel = () => (
-    <TouchableOpacity
-      accessibilityRole="button"
-      accessibilityLabel={t('inspections.delete')}
-      onPress={onRemove}
-      style={[styles.actionPanel, { backgroundColor: tokens.statusUrgent }]}
-    >
-      <MaterialCommunityIcons name="trash-can-outline" size={26} color={onDelete} />
-      <Text style={[styles.actionLabel, { color: onDelete }]}>{t('inspections.delete')}</Text>
-    </TouchableOpacity>
-  );
+  const { tokens } = useTheme();
 
   /** color + icon + label, never color alone (§5 rule 3). */
   const Fact = ({
@@ -301,18 +274,11 @@ function InspectionRow({
   );
 
   return (
-    <Swipeable
-      ref={swipeRef}
-      renderLeftActions={editPanel}
-      renderRightActions={deletePanel}
-      leftThreshold={96}
-      overshootRight={false}
-      onSwipeableOpen={(direction) => {
-        if (direction === 'right') {
-          swipeRef.current?.close(); // row is back to normal on return
-          onEdit();
-        }
-      }}
+    <SwipeableRow
+      editLabel={t('common.edit')}
+      deleteLabel={t('common.delete')}
+      onEdit={onEdit}
+      onDelete={onRemove}
     >
       <TouchableOpacity
         accessibilityRole="button"
@@ -377,7 +343,7 @@ function InspectionRow({
           </Text>
         ) : null}
       </TouchableOpacity>
-    </Swipeable>
+    </SwipeableRow>
   );
 }
 
@@ -411,12 +377,4 @@ const styles = StyleSheet.create({
   fact: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
   factText: { fontSize: sizes.fontLabel, fontWeight: '600' },
   note: { fontSize: sizes.fontLabel, lineHeight: 20, marginTop: sp(1) },
-  actionPanel: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 96,
-    borderRadius: sizes.radius,
-    gap: sp(1),
-  },
-  actionLabel: { fontSize: sizes.fontLabel, fontWeight: '700' },
 });

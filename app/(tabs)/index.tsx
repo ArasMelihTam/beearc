@@ -1,14 +1,12 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import Swipeable, {
-  type SwipeableMethods,
-} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { isBefore, isToday, startOfDay } from 'date-fns';
 import { EmptyState, Screen } from '@/src/components/Screen';
 import { PrimaryButton } from '@/src/components/PrimaryButton';
+import { SwipeableRow } from '@/src/components/SwipeableRow';
 import { SETTING_KEYS, settingsRepo } from '@/src/db/repos/settingsRepo';
 import { tasksRepo, type TaskWithRefs } from '@/src/db/repos/tasksRepo';
 import { formatDueDate } from '@/src/i18n/formatDate';
@@ -28,7 +26,7 @@ interface TaskSection {
 /**
  * Today — the workday screen (M4, task management M4b): overdue first, then
  * today, then what's coming. Row gestures: tap the circle to check off (and
- * back), tap the row to edit, swipe right to delete (soft). Checked tasks
+ * back), swipe right to edit, swipe left to delete (soft). Checked tasks
  * stay in "Done today" until midnight, then move to Task history (clock icon).
  */
 export default function TodayScreen() {
@@ -182,12 +180,9 @@ export default function TodayScreen() {
 }
 
 /**
- * One task row (own component so each row can hold a ref to its Swipeable).
- * Gestures: swipe RIGHT past the threshold → editor opens directly, no
- * button (user decision — the honey-gold pencil panel is just visual
- * feedback under the thumb). Swipe LEFT reveals Delete as a button on
- * purpose: destructive actions keep one confirming tap, editing doesn't.
- * Tap the circle to check off / back; tapping the row also edits.
+ * One task row. Gestures come from `SwipeableRow` — swipe right to edit,
+ * swipe left for the red Delete button. Tap the circle to check off / back;
+ * the row body is deliberately not a tap target (glove safety, M4b).
  */
 function TaskRow({
   item,
@@ -203,50 +198,17 @@ function TaskRow({
   onEdit: () => void;
 }) {
   const { t } = useTranslation();
-  const { scheme, tokens } = useTheme();
-  const swipeRef = useRef<SwipeableMethods>(null);
+  const { tokens } = useTheme();
   const done = !!item.doneAt;
   const place = item.hiveLabel ?? item.apiaryName;
 
-  const editPanel = () => (
-    <View style={[styles.actionPanel, { backgroundColor: tokens.primary }]}>
-      <MaterialCommunityIcons name="pencil" size={26} color={tokens.onPrimary} />
-      <Text style={[styles.actionLabel, { color: tokens.onPrimary }]}>{t('tasks.edit')}</Text>
-    </View>
-  );
-
-  // Slate fill + theme-dependent text: white on slate (light) and dark umber
-  // on the pale dark-mode slate both clear WCAG AA — terracotta/white doesn't.
-  const onDelete = scheme === 'dark' ? tokens.onPrimary : '#FFFFFF';
-  const deletePanel = () => (
-    <TouchableOpacity
-      accessibilityRole="button"
-      accessibilityLabel={t('tasks.delete')}
-      onPress={onRemove}
-      style={[styles.actionPanel, { backgroundColor: tokens.statusUrgent }]}
-    >
-      <MaterialCommunityIcons name="trash-can-outline" size={26} color={onDelete} />
-      <Text style={[styles.actionLabel, { color: onDelete }]}>{t('tasks.delete')}</Text>
-    </TouchableOpacity>
-  );
-
   return (
-    <Swipeable
-      ref={swipeRef}
-      renderLeftActions={editPanel}
-      renderRightActions={deletePanel}
-      leftThreshold={96}
-      overshootRight={false}
-      onSwipeableOpen={(direction) => {
-        // VERIFIED in this gesture-handler version's source: `direction` is
-        // the PHYSICAL swipe direction ('right' = swiped right), NOT the
-        // panel side. Wiring it to 'left' mirrored every gesture (bug found
-        // by the user on device, fixed 2026-07-11).
-        if (direction === 'right') {
-          swipeRef.current?.close(); // row is back to normal on return
-          onEdit();
-        }
-      }}
+    <SwipeableRow
+      editLabel={t('common.edit')}
+      deleteLabel={t('common.delete')}
+      onEdit={onEdit}
+      onDelete={onRemove}
+      marginBottom={sp(2)} // task rows space themselves, not via list gap
     >
       <View
         style={[styles.row, { backgroundColor: tokens.surface, borderColor: tokens.border }]}
@@ -297,7 +259,7 @@ function TaskRow({
           </View>
         </View>
       </View>
-    </Swipeable>
+    </SwipeableRow>
   );
 }
 
@@ -356,13 +318,4 @@ const styles = StyleSheet.create({
   rowTitleDone: { textDecorationLine: 'line-through' },
   rowSubLine: { flexDirection: 'row', alignItems: 'center', gap: sp(1) },
   rowSub: { fontSize: sizes.fontLabel },
-  actionPanel: {
-    width: 96,
-    borderRadius: sizes.radius,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-    marginBottom: sp(2),
-  },
-  actionLabel: { fontSize: sizes.fontLabel, fontWeight: '700' },
 });

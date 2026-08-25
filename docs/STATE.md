@@ -2,7 +2,7 @@
 
 > Update this file at the end of every session so the next session resumes with zero context loss.
 
-**Last updated:** 2026-08-13
+**Last updated:** 2026-08-25
 
 ## Current milestone
 
@@ -12,7 +12,9 @@
 
 **M5a + M5b + M5c + M5d + M5e: ✅ code complete (2026-08-12), committed as `ed82e85`, device acceptance PENDING — the phone DID run M5 code in Expo Go on 2026-08-12 during development (that is how the withdrawn `0005_slow_brother_voodoo` reached its migration ledger); the first launch AFTER 0005 was regenerated, on 2026-08-13, hit the migration-ledger crash, now fixed (see the fixed bug below). The acceptance checklist still has to be run on a phone. M5 and M6 will be tested together.** M5 was split into M5a (queens, treatments, R2 + R4 wiring) and M5b (equipment, transfers, R1 wiring). M5c, M5d and M5e are user-requested blocks: M5c and M5d landed before M5b (inspection viewing/editing/deleting, elapsed-time wording, last-inspection recency on the hive list), M5e after it (sliding summary lines, "other harmful insects seen"). A hive condition score was built in M5c and **removed again on 2026-08-12** at the user's request (see its section below).
 
-**Next: the user tests M5 and M6 together on the phone, then M7 (export & local backup).**
+**M6b — deletion & the swipe fix: ✅ DONE, confirmed working on device by the user 2026-08-25.** A small user-requested block on top of M6, not a new milestone: the swipe hint now matches the code, delete panels are red, and apiaries and hives can be deleted from their lists. See its section below.
+
+**Next: the user tests M5, M6 and M6b together on the phone, then M7 (export & local backup).**
 
 Verified off-device at the end of THIS session (2026-08-13, M5 + M6 together): `tsc --noEmit` clean, **82/82 Jest green**, en/tr key parity **356/356**, every literal `t()` key resolves in both languages, interpolation placeholders agree, eslint unchanged (3 pre-existing issues), migration chain 0000→0005, **SCHEMA_VERSION 6**, and a full `npx expo export --platform ios` bundles clean — which is what proves the three new native modules actually resolve, rather than merely type-checking.
 
@@ -177,6 +179,20 @@ Two user requests, both implemented:
 - `app.json`: added the `expo-image-picker` config plugin with camera/photos permission strings, plus an `expo.locales` map pointing at new `assets/locales/{en,tr}.json` so the iOS permission dialogs are Turkish on a Turkish phone (constraint 7). **These only take effect from M9's dev build** — in Expo Go the dialogs use Expo Go's own wording.
 - Verified off-device: `tsc --noEmit` clean, **82/82 Jest green**, en/tr key parity **356/356**, every literal `t()` key resolves in both languages, interpolation placeholders agree, eslint unchanged (3 pre-existing issues), `npx expo config` resolves the new plugin and locales.
 
+### M6b — Deletion & the swipe fix ✅ DONE (code complete + confirmed on device 2026-08-25)
+
+Three user requests (2026-08-25), all implemented. No migration, no new dependencies, SCHEMA_VERSION stays 6.
+
+- **The swipe hint now matches the code.** Settled from the gesture-handler source rather than the phone — see the fixed bug below for the citation. Swipe **right = edit**, swipe **left = delete**, everywhere.
+- **`src/components/SwipeableRow.tsx` — the gesture now exists once.** Tasks, inspection timeline rows, apiary rows and hive rows all render through it. It owns the direction semantics, the gold edit panel and the red delete panel, with the library citation in its doc comment. The two copy-pasted implementations in `app/(tabs)/index.tsx` and `app/hives/[id]/index.tsx` are gone. `marginBottom` is a prop because task rows space themselves while the other lists use a `gap`.
+- **Delete panels are red.** New `danger` / `onDanger` tokens in `src/theme/tokens.ts` — light `#B3261E` with white (6.54:1), dark `#E8776E` with Dark Umber (5.24:1), both verified against the WCAG formula. Red is reserved for destructive actions and is never a hive status, so the one colour meaning "this removes something" stays undiluted. (For the record, the terracotta that M4b rejected measures 3.75:1 with white — the old slate choice was sound, it just wasn't red.)
+- **Apiaries and hives are deletable**, by the same swipe as everything else, plus a red trash icon on their edit screens for anyone who hasn't found the gesture. Both are **soft** deletes (§6 `archived_at`): the row leaves every list, and its inspections, queens, treatments, equipment and photos stay in the database so M7's export and backup still carry them. The confirmation says so in plain words rather than promising erasure.
+- **Deleting a hive takes its open tasks with it** (`deleteHive` in status.ts) and cancels their notifications. This closes a latent bug that predates the feature: `tasksRepo.listOpen` joins the hive but never filtered on `archived_at`, so archiving a hive already left its tasks nagging on Today, and a reminder could fire days later for a hive you had removed. Completed tasks are deliberately left alone — they are the record of work you did, and Task history still shows the label.
+- **Deleting an apiary now cascades** to the hives standing in it (`deleteApiary`), instead of refusing until each one was archived first. See the decisions log.
+- Repo renames for honesty: `apiariesRepo.archive` → `softDelete` (+ new `activeHiveCount`), `hivesRepo.archive` → `softDelete` (+ new `activeIdsByApiary`), and `tasksRepo` gained `listOpenByHive` / `listOpenByApiary`. The UI word and the code word are now the same word — the previous split ("Archive" in code, deletion in the user's head) is the same class of drift as the swipe hint.
+- i18n: `common.edit` / `common.delete` added and used for every swipe panel (96 dp has no room for "Arılığı düzenle"); the `archive*` keys and the now-dead `tasks.delete` were removed. Parity **359/359**.
+- Verified off-device: `tsc --noEmit` clean, **82/82 Jest green**, en/tr parity 359/359 with every `t()` key resolving in both languages and placeholders agreeing, eslint unchanged (the same 3 pre-existing issues).
+
 ## Then (M7 — Export & local backup)
 
 - [ ] CSV export (one file per table, zipped) + PDF inspection report via expo-print, shared through the share sheet
@@ -226,14 +242,20 @@ Two user requests, both implemented:
 - M6: the database stores a photo's FILE NAME, never its full path — the iOS documents container UUID changes on reinstall/update, and a stored absolute URI would break every photo in the app one day with no warning
 - M6: a photo is written to permanent storage the instant it is taken, before the inspection row exists, so it survives the app dying mid-entry. Orphans are swept at startup rather than deleted on removal — deleting on the spot would destroy the photo of anyone who removes one and then backs out of the edit
 - M6: the full-screen photo viewer is a `Modal`, not a route — looking closer at this screen's content is not navigation, and the back gesture should close the photo rather than leave the inspection
+- **M6b: deleting an apiary deletes its hives (2026-08-25), reversing the M2 rule that refused while any active hive remained.** Being told to delete forty hives one at a time before you may delete the yard you sold is not data hygiene, it is a chore. The safety now lives in the confirmation, which names the hive count — that number is the whole decision
+- M6b: "delete" in this app means the row leaves every list, not that data is erased — soft delete via §6 `archived_at`, so M7's export and backup still carry the history. The confirmation text says this rather than promising destruction. **There is no restore UI**, so from the user's side it is one-way until M7 exists
+- M6b: red (`danger`) is reserved for destructive actions and is never a hive status — sage/terracotta/slate keep that job. A status colour doing double duty as "this deletes things" is exactly the ambiguity §5 rule 3 exists to prevent
+- M6b: one gesture, one component. `SwipeableRow` is the only place the swipe is wired; the hint-vs-code conflict was only possible because two files held the same wiring and no reader compared them
 
 ## Known bugs
 
-### OPEN — the swipe hint and the swipe code disagree (found 2026-08-13, needs the phone to settle)
+### FIXED 2026-08-25 — the swipe hint said the opposite of what the app does
 
-`today.swipeHint` tells the user *"Swipe a task to the left to edit it. Swipe right to delete."* The code does the opposite: `renderLeftActions={editPanel}` with `if (direction === 'right') onEdit()`, and in this gesture-handler version a **rightward** drag is what opens the LEFT panel and reports `'right'`. So swiping right edits and swiping left reveals delete. Affects task rows (`app/(tabs)/index.tsx`) and inspection rows (`app/hives/[id]/index.tsx`) alike.
+`today.swipeHint` told the user *"Swipe a task to the left to edit it. Swipe right to delete."* The code did the reverse, which mattered because the gesture the hint sent you to for *delete* was the one that actually fired *edit*.
 
-Not fixed blind, because the fix is a coin-flip between two files and the wrong choice makes a *destructive* gesture less predictable, not more. **On the phone: swipe one task each way, see which panel appears, then correct whichever side is wrong.** Note this also means the old "final direction wording CONFIRMED ON DEVICE" claim in the M4b section was not reliable — it matched the hint, not the code.
+**Settled from the library source, not by guessing** (the previous note said this needed the phone; it didn't — the semantics are decidable). In `react-native-gesture-handler@2.28.0`, `ReanimatedSwipeable.js:86` fires `onSwipeableOpen(toValue > 0 ? RIGHT : LEFT)`, and `handleRelease` sets `toValue = leftWidth.value` (positive) on a rightward drag. A positive translation moves the row right, which is what exposes the panel passed to `renderLeftActions`. So `direction === 'right'` ⟺ rightward drag ⟺ LEFT panel showing — the honey-gold pencil. **The code was right: swipe right = edit, swipe left = delete.** The M4b changelog entry said the same thing all along; only the hint string was wrong, and the old "confirmed on device" claim had been describing the hint.
+
+Both hint strings are now corrected, and the whole gesture lives in ONE component (`src/components/SwipeableRow.tsx`) used by tasks, inspections, apiaries and hives — the drift was only possible because the wiring was copy-pasted into two files that no single reader compared.
 
 ### FIXED 2026-08-13 — "Something went wrong opening the database" (migration 0005 re-ran) — committed as `03e7453`
 
@@ -264,7 +286,7 @@ Verified against real SQLite (`python3`, script kept out of the repo): the pre-r
 - **`npm install` IS needed now** (it was not for M5): M6 added expo-image-picker, expo-image-manipulator and expo-file-system. They are already in package.json and installed on this Mac — a fresh clone needs `npm install`, and the phone needs the Expo Go QR scanned fresh so Metro serves the new native modules. **No migration in M6** — `inspection_photos` has existed since 0000, so SCHEMA_VERSION stays 6.
 - **M6 device checklist:** attach 3 photos to a new inspection (one from the camera, two from the gallery at once) and confirm saving is not slow; open the inspection and tap a photo to view it full screen, close it with both the X and the back gesture; edit that inspection, remove one photo, save, and confirm two remain; edit again, remove one, then **back out without saving** and confirm the photo is still there; check the timeline card shows the camera icon and count; **kill the app while a photo is attached but not saved, reopen, and confirm the app still opens** (the startup sweep runs there); photos must still display after a full phone restart; both themes, both languages, **airplane mode throughout** — nothing in M6 touches the network
 - **Storage check (M6 acceptance says "app storage stays small"):** iPhone → Settings → General → iPhone Storage → Expo Go. Three 12 MP photos should add roughly 0.5 MB, not 15 MB. `totalPhotoBytes()` in `src/photos/photoStore.ts` exists for a future Settings row if you ever want it in-app.
-- **FIRST, before the rest of the checklist:** swipe one task left and one task right on Today and write down which panel appears for each — that settles the open swipe-direction bug above, and everything else on this list involves swiping.
+- **M6b device checklist:** on Today, swipe a task right (the editor should open straight away) and left (a RED Delete button should appear); check the hint card now matches what you see. Then, in the Hives tab: swipe an apiary row each way, and a hive row each way. Delete a hive that has an open task and confirm the task disappears from Today. Delete an apiary that has hives and confirm the dialog names the hive count. Check the red is readable in sunlight in BOTH themes.
 - **M5 device checklist** (still outstanding — run it in the same session as M6's): queen add/replace + age in months, NO color preselected; treatment add shows the last-treatment warning; "end treatment" closes the end-reminder and creates the recount task; high varroa count (alcohol wash, >9 mites in season) → check off "Plan varroa treatment" → 3-way prompt; swipe an inspection each way (edit / delete) and tap one to view it; edit a "no queen seen" to "yes" and watch the recheck task disappear; hive list shows "Inspected X ago" tinted by age; **add a deep super and check Today for the fill-check task 10 days out**; **take it off again from the equipment screen**; **record a transfer from one hive and confirm the OTHER hive's list shows the same move the other way round**; **put enough equipment on one hive that the summary line overflows, then drag it sideways with a finger and check a tap still opens the list**; **log an inspection with "other harmful insects — yes" and check it survives to the detail screen and the timeline card**; both themes, both languages, airplane mode
 - TR terminology NOT yet device-verified — M6 adds the `photos.*` block ("Fotoğraf ekle", "Galeriden seç", "Hazırlanıyor…") and the two native permission strings in `assets/locales/tr.json`; plus M5's "İlaçlama" for treatments, "Sessiz ana değişimi" for supersedure, "Oğuldan" for swarm origin, "Kovana verildi" for the introduction date, the product names, and all of M5b's equipment/transfer wording ("Derin kat", "Yarım kat", "Kuluçkalık", "Ana arı ızgarası", "Erkek arı çerçevesi", "Polen tuzağı", "Kışlık yalıtım", "Yavrulu çerçeve", "Ana arı memesi", "Arı (silkme)", "Aktarımlar")
 - Terminal gotcha (happened once): user ran npm/expo commands in `~` instead of the project folder — always `cd ~/dev/beearc` first
