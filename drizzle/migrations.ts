@@ -54,6 +54,13 @@ export default {
         "when": 1788293004628,
         "tag": "0006_sleepy_colonel_america",
         "breakpoints": true
+      },
+      {
+        "idx": 7,
+        "version": "6",
+        "when": 1788298773473,
+        "tag": "0007_strong_true_believers",
+        "breakpoints": true
       }
     ]
   },
@@ -65,5 +72,6 @@ export default {
     m0004: "CREATE TABLE `transfers` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`from_hive_id` text NOT NULL,\n\t`to_hive_id` text NOT NULL,\n\t`item` text NOT NULL,\n\t`quantity` integer DEFAULT 1 NOT NULL,\n\t`transferred_at` text NOT NULL,\n\t`notes` text,\n\t`deleted_at` text,\n\tFOREIGN KEY (`from_hive_id`) REFERENCES `hives`(`id`) ON UPDATE no action ON DELETE no action,\n\tFOREIGN KEY (`to_hive_id`) REFERENCES `hives`(`id`) ON UPDATE no action ON DELETE no action\n);\n--> statement-breakpoint\nALTER TABLE `equipment` ADD `notes` text;--> statement-breakpoint\nALTER TABLE `equipment` ADD `deleted_at` text;",
     m0005: "ALTER TABLE `inspections` ADD `other_insects_seen` integer;",
     m0006: "ALTER TABLE `treatments` ADD `custom_product` text;--> statement-breakpoint\nALTER TABLE `treatments` ADD `duration_days` integer;--> statement-breakpoint\nALTER TABLE `treatments` ADD `withdrawal_days` integer;",
+    m0007: "ALTER TABLE `tasks` ADD `notify` integer DEFAULT true NOT NULL;--> statement-breakpoint\nALTER TABLE `treatments` ADD `notify` integer DEFAULT true NOT NULL;",
   },
 };

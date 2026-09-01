@@ -6,6 +6,7 @@ import { ChipPicker } from '@/src/components/ChipPicker';
 import { DueDayPicker } from '@/src/components/DueDayPicker';
 import { FormField } from '@/src/components/FormField';
 import { MultiChipPicker } from '@/src/components/MultiChipPicker';
+import { NotifyToggle } from '@/src/components/NotifyToggle';
 import { PrimaryButton } from '@/src/components/PrimaryButton';
 import { Screen } from '@/src/components/Screen';
 import { apiariesRepo, type ApiaryWithHiveCount } from '@/src/db/repos/apiariesRepo';
@@ -34,6 +35,7 @@ export default function NewTaskScreen() {
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
   const [dayOffset, setDayOffset] = useState(1); // default: tomorrow
+  const [notify, setNotify] = useState(true); // the bell — on unless muted
   const [apiaries, setApiaries] = useState<ApiaryWithHiveCount[]>([]);
   const [apiaryId, setApiaryId] = useState<string | null>(null);
   const [hives, setHives] = useState<Hive[]>([]);
@@ -59,7 +61,7 @@ export default function NewTaskScreen() {
       return;
     }
     const dueAt = dueInDays(nowIso(), dayOffset);
-    const base = { title, details: details || null, dueAt };
+    const base = { title, details: details || null, dueAt, notify };
     if (hiveIds.length === 0) {
       // No specific hive: link the apiary if one is chosen, else free-floating.
       const task = await tasksRepo.create({ ...base, apiaryId });
@@ -91,6 +93,9 @@ export default function NewTaskScreen() {
         />
 
         <DueDayPicker dayOffset={dayOffset} onChange={setDayOffset} />
+
+        {/* The bell sits with the due date — it is a question about that date. */}
+        <NotifyToggle value={notify} onChange={setNotify} hint={t('notify.taskHint')} />
 
         {apiaries.length > 0 ? (
           <>

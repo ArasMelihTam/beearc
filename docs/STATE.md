@@ -2,7 +2,7 @@
 
 > Update this file at the end of every session so the next session resumes with zero context loss.
 
-**Last updated:** 2026-08-26
+**Last updated:** 2026-08-27
 
 ## Current milestone
 
@@ -16,7 +16,9 @@
 
 **M6c — treatment products, deadlines & the withdrawal period: ✅ code complete (2026-08-26), device acceptance PENDING.** Migration **0006**, **SCHEMA_VERSION 7**. See its section below.
 
-**Next: the user tests M5, M6, M6b and M6c together on the phone, then M7 (export & local backup).**
+**M6d — the notification bell: ✅ code complete (2026-08-27), device acceptance PENDING.** Migration **0007**, **SCHEMA_VERSION 8**. See its section below.
+
+**Next: the user tests M5, M6, M6b, M6c and M6d together on the phone, then M7 (export & local backup).**
 
 **⚠️ THE WITHDRAWAL-PERIOD DEFAULTS ARE UNVERIFIED AND NEED THE BEEKEEPER'S CORRECTION.** `treatmentWithdrawalDays` in `src/logic/rules.ts` was written by Claude from general practice, not from Turkish product labels. They are marked as such in the code. Every treatment's own value is editable on the form, so a wrong default is recoverable — but they should be checked against the actual boxes before this ships to anyone else.
 
@@ -214,6 +216,18 @@ Four user requests (2026-08-26). Migration **0006** (`treatments.custom_product`
 - **Fixed on the way:** the treatment edit screen ran R7 off the STALE row (`{...treatment, endedAt}`), so editing the withdrawal period while ending a treatment would have dated the harvest window from the old number.
 - Verified off-device: `tsc --noEmit` clean, **108/108 Jest green** (26 new), en/tr parity **374/374** with every `t()` key resolving and placeholders agreeing, eslint unchanged (1 pre-existing error + 3 pre-existing warnings), and the migration chain checked in real SQLite **both ways** — a fresh 0000→0006 build, and the 0005→0006 upgrade path with an existing apiary/hive/treatment surviving intact.
 
+### M6d — The notification bell ✅ code complete (2026-08-27, device acceptance pending)
+
+User request 2026-08-27: a bell button next to the treatment deadlines that turns the notification off, and the same on tasks. Migration **0007** (`tasks.notify`, `treatments.notify`, both `NOT NULL DEFAULT true`), **SCHEMA_VERSION 8**, no new dependencies.
+
+- **Muting silences the phone, nothing else.** A muted task still appears on Today, still counts as overdue, still needs checking off, and the assistant still tracks it. `scheduleTaskNotification` returns early on `!task.notify` — one guard, at the only place the app ever schedules.
+- **`NotifyToggle`** — a 56 dp bell row reading *"Remind me on the day"* / *"No reminder"*, with the bell struck through and the row turning terracotta when off. Placed **next to the due date** on task create and task edit, and **under the two day-count steppers** on the treatment form, because that is the question those dates raise.
+- **Editable on rule tasks too.** The assistant decides WHAT to track; the beekeeper decides whether it may interrupt them. Muting changes no rule logic, no status, no duplicate guard.
+- **The treatment's bell governs the reminders it books** — R2 removal, R2 recount and R7 withdrawal. It has to live on the treatment row rather than be passed at save time, because **R7 is created later**, when the treatment is ended — often from the one-tap "End treatment" button on the list screen, which has no form to ask on.
+- **A muted task says so.** Today rows carry a bell-off + "Silent" marker (icon + word, never colour alone, §5 rule 3). A reminder that silently never arrives is exactly the setting you forget you changed and then blame the app for. **The marker is NOT a button** — M4b removed tap targets from task rows because of accidental glove touches, and muting by accident is a silent failure. Swipe right to change it. *If the beekeeper wants a one-tap mute directly on the row, that is a small change — ask them.*
+- Permission is still requested lazily and now only for tasks that will actually ring: the `notify` guard sits **before** `ensurePermission()`, so a beekeeper who mutes everything is never asked at all.
+- Verified off-device: `tsc --noEmit` clean, **108/108 Jest green**, en/tr parity **379/379**, eslint unchanged (1 pre-existing error + 3 pre-existing warnings), and migration 0007 checked in real SQLite both ways — fresh 0000→0007, and a 0006→0007 upgrade where **existing tasks and treatments come out with `notify = 1`**, so nothing already on the phone goes silent.
+
 ## Then (M7 — Export & local backup)
 
 - [ ] CSV export (one file per table, zipped) + PDF inspection report via expo-print, shared through the share sheet
@@ -272,6 +286,10 @@ Four user requests (2026-08-26). Migration **0006** (`treatments.custom_product`
 - M6c: 0 and null are different answers for a withdrawal period, everywhere. 0 = harvest now, null = the app does not know. Collapsing them would either nag about nothing or imply a harvest is safe on a guess
 - M6c: a custom product name lives on the treatment row AND in the remembered list, so forgetting it from the picker never rewrites history
 - **M6c: the withdrawal-period defaults in `rules.ts` are Claude's proposal, NOT verified figures** — flagged in the code and at the top of this file. They vary by product, formulation and country, and the label on the box is the authority. The per-treatment field is the real control; the table is only a prefill
+- **M6d: muting is about interruption, not about the task (user request 2026-08-27).** A silenced reminder still lives on Today and still needs doing — the bell only decides whether the phone rings on the due date
+- M6d: the bell lives on the TREATMENT, not only on the tasks it creates, because R7 is booked later (when the treatment ends, often from the one-tap button) and there is no form to ask on at that moment
+- M6d: a muted task shows a "Silent" marker. A reminder that never arrives and never said it wouldn't is worse than no feature at all
+- M6d: the marker on a Today row is deliberately NOT a button — M4b removed tap targets from task rows for glove safety, and an accidental mute fails silently. Revisit only if the beekeeper asks for one-tap muting
 
 ## Known bugs
 
@@ -314,11 +332,12 @@ Verified against real SQLite (`python3`, script kept out of the repo): the pre-r
 - **Storage check (M6 acceptance says "app storage stays small"):** iPhone → Settings → General → iPhone Storage → Expo Go. Three 12 MP photos should add roughly 0.5 MB, not 15 MB. `totalPhotoBytes()` in `src/photos/photoStore.ts` exists for a future Settings row if you ever want it in-app.
 - **M6b device checklist:** on Today, swipe a task right (the editor should open straight away) and left (a RED Delete button should appear); check the hint card now matches what you see. Then, in the Hives tab: swipe an apiary row each way, and a hive row each way. Delete a hive that has an open task and confirm the task disappears from Today. Delete an apiary that has hives and confirm the dialog names the hive count. Check the red is readable in sunlight in BOTH themes.
 - **M6c device checklist:** add a treatment and confirm the last-treatment warning now reads properly in Turkish; check "leave on for" is prefilled per product and that switching product re-fills it; pick **Other**, type a name, save, then add another Other treatment and confirm the name appears as a chip with its day counts — tap it, then try the × and confirm the chip goes but the old treatment still shows its name; set a withdrawal period, end the treatment, and confirm Today gets the "honey safe to harvest" task on the right day and the hive shows "Do not harvest before ___" until then; set withdrawal to **Not set** and confirm the app says nothing at all; start a new inspection and confirm **queen and eggs both start on Yes**
+- **M6d device checklist:** create a task due today with the bell OFF and confirm no notification arrives (and that the row shows the "Silent" marker); create one with the bell ON and confirm it does; swipe an existing task right and toggle its bell, then check the marker appears/disappears; do the same on a RULE task (the bell must be editable even though title and hive are locked); set a treatment's bell to off and confirm neither the removal reminder nor the recount nor the withdrawal task rings, while all three still appear on Today; **check an existing task from before this update still notifies** (the migration defaults everything to on)
 - **M5 device checklist** (still outstanding — run it in the same session as M6's): queen add/replace + age in months, NO color preselected; treatment add shows the last-treatment warning; "end treatment" closes the end-reminder and creates the recount task; high varroa count (alcohol wash, >9 mites in season) → check off "Plan varroa treatment" → 3-way prompt; swipe an inspection each way (edit / delete) and tap one to view it; edit a "no queen seen" to "yes" and watch the recheck task disappear; hive list shows "Inspected X ago" tinted by age; **add a deep super and check Today for the fill-check task 10 days out**; **take it off again from the equipment screen**; **record a transfer from one hive and confirm the OTHER hive's list shows the same move the other way round**; **put enough equipment on one hive that the summary line overflows, then drag it sideways with a finger and check a tap still opens the list**; **log an inspection with "other harmful insects — yes" and check it survives to the detail screen and the timeline card**; both themes, both languages, airplane mode
 - TR terminology NOT yet device-verified — M6 adds the `photos.*` block ("Fotoğraf ekle", "Galeriden seç", "Hazırlanıyor…") and the two native permission strings in `assets/locales/tr.json`; plus M5's "İlaçlama" for treatments, "Sessiz ana değişimi" for supersedure, "Oğuldan" for swarm origin, "Kovana verildi" for the introduction date, the product names, and all of M5b's equipment/transfer wording ("Derin kat", "Yarım kat", "Kuluçkalık", "Ana arı ızgarası", "Erkek arı çerçevesi", "Polen tuzağı", "Kışlık yalıtım", "Yavrulu çerçeve", "Ana arı memesi", "Arı (silkme)", "Aktarımlar")
 - Terminal gotcha (happened once): user ran npm/expo commands in `~` instead of the project folder — always `cd ~/dev/beearc` first
 - Metro gotcha (2026-07-07): stale Metro cache made asset PNGs "disappear" — fix: `npx expo start -c` and scan the QR fresh
-- After every schema change: `npm run db:generate` (runs drizzle-kit + build-migrations.mjs), bump `SCHEMA_VERSION` in `src/db/DbProvider.tsx` — **now 7**, migrations 0000→0006. Adding values to a TS-only enum on a `text` column (hive types, treatment products, equipment items, transfer items) needs NO migration; db:generate says "No schema changes"
+- After every schema change: `npm run db:generate` (runs drizzle-kit + build-migrations.mjs), bump `SCHEMA_VERSION` in `src/db/DbProvider.tsx` — **now 8**, migrations 0000→0007. Adding values to a TS-only enum on a `text` column (hive types, treatment products, equipment items, transfer items) needs NO migration; db:generate says "No schema changes"
 - Stale Metro servers: a leftover `expo start` from a previous session can hold port 8081 and make the next run offer 8082. `lsof -nP -iTCP:8081 -sTCP:LISTEN` finds it; either kill it or just accept the new port
 - Typed-routes errors in the editor disappear after `npx expo start` regenerates `.expo/types`
 - User (beekeeper, TR domain expert) verifies all new Turkish beekeeping terminology each milestone — M4's TR strings were covered by its device acceptance on 2026-07-12; **M5 and M6** are the ones still outstanding (listed above)

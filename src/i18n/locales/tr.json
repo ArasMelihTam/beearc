@@ -25,6 +25,13 @@
     "count_one": "{{count}} gün",
     "count_other": "{{count}} gün"
   },
+  "notify": {
+    "on": "Gününde hatırlat",
+    "off": "Hatırlatma yok",
+    "taskHint": "Görev her hâlükârda Bugün listende kalır — bu ayar yalnızca telefonun çalıp çalmayacağını belirler.",
+    "treatmentHint": "Bu ilaçlamanın oluşturduğu hatırlatmalar için geçerlidir: ürünü alma, varroa sayımı ve bal bekleme süresi.",
+    "mutedBadge": "Sessiz"
+  },
   "dates": {
     "today": "Bugün",
     "yesterday": "Dün",

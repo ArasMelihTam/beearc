@@ -25,6 +25,13 @@
     "count_one": "{{count}} day",
     "count_other": "{{count}} days"
   },
+  "notify": {
+    "on": "Remind me on the day",
+    "off": "No reminder",
+    "taskHint": "The task stays on your Today list either way — this only decides whether your phone rings.",
+    "treatmentHint": "Applies to the reminders this treatment creates: taking it off, the varroa recount, and the honey withdrawal.",
+    "mutedBadge": "Silent"
+  },
   "dates": {
     "today": "Today",
     "yesterday": "Yesterday",

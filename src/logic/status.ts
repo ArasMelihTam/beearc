@@ -97,10 +97,14 @@ export async function recomputeAllHiveStatuses(): Promise<void> {
   for (const hive of all) await recomputeHiveStatus(hive.id);
 }
 
-/** Create the drafted tasks (skipping duplicates) and schedule reminders. */
+/**
+ * Create the drafted tasks (skipping duplicates) and schedule reminders.
+ * `notify: false` (M6d) still creates the task — it just never rings.
+ */
 async function materializeDrafts(
   hive: Hive,
-  drafts: RuleTaskDraft[]
+  drafts: RuleTaskDraft[],
+  notify = true
 ): Promise<void> {
   for (const draft of drafts) {
     // Guard: two bad inspections in a row must not stack identical tasks.
@@ -110,7 +114,10 @@ async function materializeDrafts(
       dueAt: draft.dueAt,
       hiveId: hive.id,
       source: draft.source,
+      notify,
     });
+    // scheduleTaskNotification skips muted tasks itself; calling it either
+    // way keeps one code path.
     await scheduleTaskNotification(task, hive.label);
   }
 }
@@ -259,7 +266,8 @@ export async function applyTreatmentStarted(treatment: Treatment): Promise<void>
       treatment.startedAt,
       settings,
       treatment.durationDays
-    )
+    ),
+    treatment.notify
   );
 }
 
@@ -279,7 +287,10 @@ export async function applyTreatmentEnded(treatment: Treatment): Promise<void> {
   await materializeDrafts(
     hive,
     // R7 rides along when the treatment carries a withdrawal period.
-    evaluateTreatmentEnded(treatment.endedAt, settings, treatment.withdrawalDays)
+    evaluateTreatmentEnded(treatment.endedAt, settings, treatment.withdrawalDays),
+    // The bell set on the treatment governs the reminders it books — R7 is
+    // created here, long after the form that asked the question.
+    treatment.notify
   );
 }
 

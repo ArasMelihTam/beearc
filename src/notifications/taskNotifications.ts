@@ -53,13 +53,16 @@ export function displayTaskTitle(task: Pick<Task, 'title' | 'source'>): string {
 
 /**
  * Schedule (or silently skip) the reminder for one task.
- * Skips: already done, due in the past, or permission denied.
+ * Skips: muted (M6d), already done, due in the past, or permission denied.
  */
 export async function scheduleTaskNotification(
   task: Task,
   hiveLabel?: string | null
 ): Promise<void> {
   try {
+    // Muted: the task still lives on Today and still needs checking off —
+    // the beekeeper just doesn't want the phone going off for this one.
+    if (!task.notify) return;
     if (task.doneAt) return;
     const due = new Date(task.dueAt);
     if (due.getTime() <= Date.now()) return;

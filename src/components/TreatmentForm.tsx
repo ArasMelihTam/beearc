@@ -25,6 +25,7 @@ import { sizes, sp } from '@/src/theme/tokens';
 import { ChipPicker } from './ChipPicker';
 import { DayCountStepper } from './DayCountStepper';
 import { FormField } from './FormField';
+import { NotifyToggle } from './NotifyToggle';
 import { daysAgoIso, PastDayPicker } from './PastDayPicker';
 import { PrimaryButton } from './PrimaryButton';
 import { ToggleRow } from './ToggleRow';
@@ -75,6 +76,7 @@ export function TreatmentForm({
   const [endDaysAgo, setEndDaysAgo] = useState(initial?.endedAt ? daysAgoOf(initial.endedAt) : 0);
   const [endTouched, setEndTouched] = useState(initial?.endedAt == null);
   const [notes, setNotes] = useState(initial?.notes ?? '');
+  const [notify, setNotify] = useState(initial?.notify ?? true);
 
   const [durationDays, setDurationDays] = useState<number | null>(
     initial?.durationDays ?? ruleSettings.treatmentDurationDays[initial?.product ?? 'formic_acid']
@@ -130,6 +132,7 @@ export function TreatmentForm({
       endedAt,
       durationDays,
       withdrawalDays,
+      notify,
       notes: notes || null,
     });
   };
@@ -256,6 +259,14 @@ export function TreatmentForm({
           value={withdrawalDays}
           onChange={setWithdrawalDays}
           presets={WITHDRAWAL_PRESETS}
+        />
+
+        {/* Sits under the two day counts because it is the question they
+            raise: those dates become reminders — should they ring? */}
+        <NotifyToggle
+          value={notify}
+          onChange={setNotify}
+          hint={t('notify.treatmentHint')}
         />
 
         {showEnded ? (

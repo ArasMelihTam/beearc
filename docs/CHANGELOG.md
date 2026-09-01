@@ -81,6 +81,8 @@ All notable changes to Beearc. Format loosely follows [Keep a Changelog](https:/
 - M6c: Every treatment carries "leave on for ___ days" — prefilled from the product, editable, and the only way a custom product ever gets a removal reminder
 - M6c: R7 — honey withdrawal period. When a treatment ends, the app books the day the honey is clear again and shows "Do not harvest before ___" on the hive until then. Silent when the period is unknown, because implying a harvest is safe on a guess is worse than saying nothing
 - M6c: `DayCountStepper` — quick chips plus ±1, with "Not set" as a real answer distinct from zero
+- M6d: A bell toggle on tasks and treatments — "Remind me on the day" / "No reminder". A muted task still sits on Today and still needs checking off; only the phone stays quiet. Muted rows carry a bell-off "Silent" marker so a reminder never goes missing without saying so
+- M6d: The bell on a treatment governs every reminder it books — removal, varroa recount and honey withdrawal — including R7, which is created later when the treatment ends
 
 ### Changed
 

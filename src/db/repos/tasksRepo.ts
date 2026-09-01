@@ -19,6 +19,8 @@ export interface TaskInput {
   apiaryId?: string | null;
   /** 'manual' or 'rule:<id>' (§6). Screens never pass rule sources themselves. */
   source?: string;
+  /** false = no notification on the due date (M6d). Defaults to true. */
+  notify?: boolean;
 }
 
 /** What editing may change. Rule tasks: the UI locks title + links (M4b). */
@@ -28,6 +30,8 @@ export interface TaskUpdateInput {
   dueAt: string;
   hiveId?: string | null;
   apiaryId?: string | null;
+  /** M6d — the bell. Editable on rule tasks too; it changes no rule logic. */
+  notify?: boolean;
 }
 
 const withRefs = {
@@ -94,6 +98,7 @@ export const tasksRepo = {
       dueAt: input.dueAt,
       doneAt: null,
       deletedAt: null,
+      notify: input.notify ?? true,
       source: input.source ?? 'manual',
       createdAt: nowIso(),
     };
@@ -110,6 +115,7 @@ export const tasksRepo = {
         dueAt: input.dueAt,
         hiveId: input.hiveId ?? null,
         apiaryId: input.apiaryId ?? null,
+        notify: input.notify ?? true,
       })
       .where(eq(tasks.id, id));
   },

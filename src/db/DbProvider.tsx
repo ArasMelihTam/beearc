@@ -15,7 +15,7 @@ import { schemaVersion } from './schema';
 import { nowIso } from './util';
 
 /** Bump on every new migration; written to the schema_version table (§6). */
-const SCHEMA_VERSION = 7; // 7 = treatments.custom_product / duration_days / withdrawal_days
+const SCHEMA_VERSION = 8; // 8 = tasks.notify / treatments.notify
 
 /**
  * Drizzle wraps the real SQLite failure in a DrizzleError whose message only

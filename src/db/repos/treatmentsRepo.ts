@@ -18,6 +18,8 @@ export interface TreatmentInput {
   durationDays?: number | null;
   /** Days after removal before honey is safe; null = unknown, R7 stays quiet. */
   withdrawalDays?: number | null;
+  /** false = the reminders this treatment books never ring (M6d). */
+  notify?: boolean;
   notes?: string | null;
 }
 
@@ -85,6 +87,7 @@ export const treatmentsRepo = {
       endedAt: input.endedAt ?? null,
       durationDays: input.durationDays ?? null,
       withdrawalDays: input.withdrawalDays ?? null,
+      notify: input.notify ?? true,
       notes: input.notes?.trim() || null,
     };
     await db.insert(treatments).values(row);
@@ -102,6 +105,7 @@ export const treatmentsRepo = {
         endedAt: input.endedAt ?? null,
         durationDays: input.durationDays ?? null,
         withdrawalDays: input.withdrawalDays ?? null,
+        notify: input.notify ?? true,
         notes: input.notes?.trim() || null,
       })
       .where(eq(treatments.id, id));

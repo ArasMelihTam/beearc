@@ -50,6 +50,13 @@
       "when": 1788293004628,
       "tag": "0006_sleepy_colonel_america",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1788298773473,
+      "tag": "0007_strong_true_believers",
+      "breakpoints": true
     }
   ]
 }

@@ -199,6 +199,13 @@ export const treatments = sqliteTable('treatments', {
    * setting next season cannot silently re-date a past harvest window.
    */
   withdrawalDays: integer('withdrawal_days'),
+  /**
+   * Whether the reminders this treatment books (R2 removal, R2 recount, R7
+   * withdrawal) should ring. Stored on the treatment because R7 is created
+   * later, when the treatment is ended — often from the one-tap button on
+   * the list screen, which has no form to ask on.
+   */
+  notify: integer('notify', { mode: 'boolean' }).notNull().default(true),
   notes: text('notes'),
 });
 
@@ -215,6 +222,13 @@ export const tasks = sqliteTable('tasks', {
   doneAt: text('done_at'),
   /** Soft delete (swipe-to-delete, M4b) — same "never lose history" rule as §6. */
   deletedAt: text('deleted_at'),
+  /**
+   * Whether the phone should ring for this task on its due date (M6d).
+   * The task itself is unaffected — it still sits on Today and still needs
+   * checking off. This mutes ONLY the notification, for the chores you would
+   * rather see when you look than be interrupted by. Default on.
+   */
+  notify: integer('notify', { mode: 'boolean' }).notNull().default(true),
   source: text('source').notNull().default('manual'),
   createdAt: text('created_at').notNull(),
 });

@@ -256,6 +256,22 @@ function TaskRow({
               {formatDueDate(item.dueAt)}
               {place ? `  ·  ${place}` : ''}
             </Text>
+            {/* A muted task must SAY it is muted (M6d). A reminder that
+                silently never arrives is the kind of setting you forget you
+                changed and then blame the app for. Icon + word, never colour
+                alone (§5 rule 3). Swipe right to change it. */}
+            {!item.notify && !done ? (
+              <View style={styles.mutedBadge}>
+                <MaterialCommunityIcons
+                  name="bell-off-outline"
+                  size={15}
+                  color={tokens.textMuted}
+                />
+                <Text style={[styles.rowSub, { color: tokens.textMuted }]}>
+                  {t('notify.mutedBadge')}
+                </Text>
+              </View>
+            ) : null}
           </View>
         </View>
       </View>
@@ -296,6 +312,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   hintButtonLabel: { fontSize: sizes.fontBody, fontWeight: '700' },
+  mutedBadge: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   row: {
     minHeight: sizes.tapPrimary,
     borderRadius: sizes.radius,

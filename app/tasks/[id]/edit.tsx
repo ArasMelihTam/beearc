@@ -6,6 +6,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { ChipPicker } from '@/src/components/ChipPicker';
 import { DueDayPicker } from '@/src/components/DueDayPicker';
 import { FormField } from '@/src/components/FormField';
+import { NotifyToggle } from '@/src/components/NotifyToggle';
 import { PrimaryButton } from '@/src/components/PrimaryButton';
 import { Screen } from '@/src/components/Screen';
 import { apiariesRepo, type ApiaryWithHiveCount } from '@/src/db/repos/apiariesRepo';
@@ -35,6 +36,7 @@ export default function EditTaskScreen() {
   const [details, setDetails] = useState('');
   const [dayOffset, setDayOffset] = useState(0);
   const [dueTouched, setDueTouched] = useState(false);
+  const [notify, setNotify] = useState(true);
   const [apiaries, setApiaries] = useState<ApiaryWithHiveCount[]>([]);
   const [apiaryId, setApiaryId] = useState<string | null>(null);
   const [hives, setHives] = useState<Hive[]>([]);
@@ -54,6 +56,7 @@ export default function EditTaskScreen() {
       setTask(loaded);
       setTitle(loaded.title);
       setDetails(loaded.details ?? '');
+      setNotify(loaded.notify);
       setApiaries(await apiariesRepo.listActive());
       // Resolve the current link for the chips (hive → find its apiary).
       if (loaded.hiveId) {
@@ -92,6 +95,9 @@ export default function EditTaskScreen() {
       dueAt: dueTouched ? dueInDays(nowIso(), dayOffset) : task.dueAt,
       hiveId: isRuleTask ? task.hiveId : hiveId,
       apiaryId: isRuleTask ? task.apiaryId : hiveId ? null : apiaryId,
+      // Editable on rule tasks too: the assistant decides WHAT to track, the
+      // beekeeper decides whether it is allowed to interrupt them.
+      notify,
     });
     router.back();
   };
@@ -135,6 +141,8 @@ export default function EditTaskScreen() {
           }}
           fixedLabel={dueTouched ? null : formatDueDate(task.dueAt)}
         />
+
+        <NotifyToggle value={notify} onChange={setNotify} hint={t('notify.taskHint')} />
 
         {!isRuleTask && apiaries.length > 0 ? (
           <>
