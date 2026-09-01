@@ -94,8 +94,8 @@ export default function NewTaskScreen() {
 
         <DueDayPicker dayOffset={dayOffset} onChange={setDayOffset} />
 
-        {/* The bell sits with the due date — it is a question about that date. */}
-        <NotifyToggle value={notify} onChange={setNotify} hint={t('notify.taskHint')} />
+        {/* Icon only, right of the due date — it is a question about that date. */}
+        <NotifyToggle value={notify} onChange={setNotify} hintKey="notify.taskHint" />
 
         {apiaries.length > 0 ? (
           <>

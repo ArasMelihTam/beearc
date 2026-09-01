@@ -142,7 +142,7 @@ export default function EditTaskScreen() {
           fixedLabel={dueTouched ? null : formatDueDate(task.dueAt)}
         />
 
-        <NotifyToggle value={notify} onChange={setNotify} hint={t('notify.taskHint')} />
+        <NotifyToggle value={notify} onChange={setNotify} hintKey="notify.taskHint" />
 
         {!isRuleTask && apiaries.length > 0 ? (
           <>

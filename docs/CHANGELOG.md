@@ -83,6 +83,7 @@ All notable changes to Beearc. Format loosely follows [Keep a Changelog](https:/
 - M6c: `DayCountStepper` — quick chips plus ±1, with "Not set" as a real answer distinct from zero
 - M6d: A bell toggle on tasks and treatments — "Remind me on the day" / "No reminder". A muted task still sits on Today and still needs checking off; only the phone stays quiet. Muted rows carry a bell-off "Silent" marker so a reminder never goes missing without saying so
 - M6d: The bell on a treatment governs every reminder it books — removal, varroa recount and honey withdrawal — including R7, which is created later when the treatment ends
+- M6e: The assistant has a master switch and a switch per rule (super check, treatment reminders, queen recheck, varroa alarm, feeding check, honey withdrawal). Off means it creates nothing and colours nothing — the app becomes a pure record book
 
 ### Changed
 
@@ -96,6 +97,7 @@ All notable changes to Beearc. Format loosely follows [Keep a Changelog](https:/
 - M6b: Swipe panels say "Edit" / "Delete" rather than "Edit task" / "Arılığı düzenle" — 96 dp is not enough for a sentence
 - M6b: An apiary with hives in it can now be deleted (M2 refused until every hive was archived first). The hive count is named in the confirmation instead
 - M6c: Queen seen and eggs seen now start on YES in a new inspection — on a healthy colony you nearly always see them, so a routine inspection needs no taps there. R3 still only fires when BOTH are set to no, so this cannot raise a false alarm
+- M6e: The bell is now an icon on its own. The paragraph explaining it appears on the first tap only, then never again — a hint you have read is just noise on every later form
 
 ### Fixed
 
@@ -106,6 +108,8 @@ All notable changes to Beearc. Format loosely follows [Keep a Changelog](https:/
 - M6b: The swipe hint on Today told the opposite of what the app does ("swipe left to edit, right to delete") — it sent you to the *edit* gesture when you wanted to delete. The code was right; the hint is now corrected in both languages
 - M6c: The Turkish last-treatment warning read "{{product}}, {{date}} ({{ago}}) başladı", splitting the date from its verb, and said "Çok erken" where the beekeeper's meaning is "olması gerekenden erken" — earlier than it should be. Reworded. ("zehirleme" was correct and stays: over-treating poisons the colony, and that is the beekeeper's own word for the risk)
 - M6c: Custom product names are matched with Turkish i-folding — without it "APIVAR" lowercases to "apıvar" with a dotless ı on a Turkish phone, and the same product would have been remembered twice
+- M6e: Turkish rewritten for plain, modern wording and consistent punctuation. "her hâlükârda" → "her durumda"; every remaining formal *siz* form ("girin", "seçin", "deneyin", "ister misiniz") became informal *sen*; "Mevcut ana" → "Şu anki ana"; all 16 English-style em-dashes became commas, periods or colons; straight apostrophes became typographic ones. 48 strings in total
+- M6e: The Turkish and English inspection swipe hints were vague about direction ("or the other way") — both now name right for edit and left for delete, matching the code
 
 ### Fixed
 

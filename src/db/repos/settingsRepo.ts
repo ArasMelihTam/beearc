@@ -36,4 +36,6 @@ export const SETTING_KEYS = {
   swipeHintSeen: 'swipe_hint_seen',
   /** JSON CustomProduct[] — the "Other" treatment names you've used before. */
   customTreatmentProducts: 'custom_treatment_products',
+  /** '1' once the one-time explanation of the notification bell was shown. */
+  notifyHintSeen: 'notify_hint_seen',
 } as const;

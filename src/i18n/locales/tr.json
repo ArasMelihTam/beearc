@@ -28,8 +28,8 @@
   "notify": {
     "on": "Gününde hatırlat",
     "off": "Hatırlatma yok",
-    "taskHint": "Görev her hâlükârda Bugün listende kalır — bu ayar yalnızca telefonun çalıp çalmayacağını belirler.",
-    "treatmentHint": "Bu ilaçlamanın oluşturduğu hatırlatmalar için geçerlidir: ürünü alma, varroa sayımı ve bal bekleme süresi.",
+    "taskHint": "Görev her durumda Bugün listende kalır. Bu ayar sadece telefonun çalıp çalmayacağını değiştirir.",
+    "treatmentHint": "Bu ilaçlamanın oluşturduğu bütün hatırlatmalar için geçerli: ürünü alma, varroa sayımı ve bal bekleme süresi.",
     "mutedBadge": "Sessiz"
   },
   "dates": {
@@ -53,14 +53,14 @@
     "upcoming": "Yaklaşan",
     "doneToday": "Bugün tamamlanan",
     "addTask": "Görev ekle",
-    "swipeHint": "Bir görevi düzenlemek için sağa kaydır. Silmek için sola kaydır. Tamamlamak için yuvarlağa dokun — geri almak için tekrar dokun.",
+    "swipeHint": "Bir görevi düzenlemek için sağa kaydır. Silmek için sola kaydır. Tamamlamak için yuvarlağa dokun, geri almak için tekrar dokun.",
     "swipeHintGotIt": "Anladım"
   },
   "tasks": {
     "new": "Yeni görev",
     "titleLabel": "Ne yapılacak?",
     "titlePlaceholder": "örn. İki eski çerçeveyi değiştir",
-    "titleRequired": "Lütfen bir başlık girin.",
+    "titleRequired": "Lütfen bir başlık yaz.",
     "details": "Ayrıntılar (isteğe bağlı)",
     "dueLabel": "Tarih",
     "dueToday": "Bugün",
@@ -70,12 +70,12 @@
     "minusDay": "Bir gün öne al",
     "plusDay": "Bir gün ertele",
     "linkLabel": "Kovanlara bağla (isteğe bağlı)",
-    "multiHint": "{{count}} kovan seçildi — her biri ayrı görev olur, böylece tek tek işaretleyebilirsin.",
+    "multiHint": "{{count}} kovan seçildi. Her biri ayrı görev olur, böylece tek tek işaretleyebilirsin.",
     "save": "Görevi kaydet",
     "edit": "Görevi düzenle",
     "history": "Görev geçmişi",
-    "historyEmpty": "Henüz tamamlanan görev yok. İşaretlenen görevler gece yarısına kadar Bugün'de kalır, sonra buraya taşınır.",
-    "ruleLocked": "Asistan oluşturdu — başlık ve kovan sabittir. Tarihi değiştirebilir veya ayrıntı ekleyebilirsin."
+    "historyEmpty": "Henüz tamamlanan görev yok. İşaretlenen görevler gece yarısına kadar Bugün’de kalır, sonra buraya taşınır.",
+    "ruleLocked": "Bunu asistan oluşturdu. Başlık ve kovan değişmez. Tarihi değiştirebilir veya ayrıntı ekleyebilirsin."
   },
   "rules": {
     "R1": "Ballık doluluğunu kontrol et",
@@ -84,20 +84,36 @@
     "R3": "Ana arıyı / yumurtayı tekrar kontrol et",
     "R4": "Varroa mücadelesi planla",
     "R5": "Beslemeyi kontrol et",
-    "R7": "Bekleme süresi doldu — bal hasada uygun"
+    "R7": "Bekleme süresi doldu, bal hasada uygun"
   },
   "rulesSettings": {
-    "title": "Asistan kuralları",
-    "hint": "Asistan, kontrollerini okuyup görevleri ve kovan uyarılarını kendisi oluşturur. Sınırlarını buradan ayarlayabilirsin. Aktif sezon her arılığın konumuna göre otomatik belirlenir.",
-    "varroaSeasonPct": "Sezonda varroa alarmı (%, yıkama/şeker)",
-    "varroaPreWinterPct": "Kış öncesi varroa alarmı (%)",
-    "stickyBoardPerDay": "Yapışkan taban alarmı (akar/gün)",
-    "inspectionOverdueDays": "Şu kadar gün kontrol yoksa hatırlat (gün)",
-    "invalid": "Lütfen sıfırdan büyük sayılar girin."
+    "title": "Asistan",
+    "hint": "Asistan kontrollerini okur, görevleri ve kovan uyarılarını kendisi oluşturur. Neleri yapacağını ve sınırlarını buradan değiştirebilirsin. Aktif sezon her arılığın konumuna göre kendiliğinden belirlenir.",
+    "varroaSeasonPct": "Sezonda varroa uyarısı (%, yıkama/şeker)",
+    "varroaPreWinterPct": "Kış öncesi varroa uyarısı (%)",
+    "stickyBoardPerDay": "Yapışkan taban uyarısı (akar/gün)",
+    "inspectionOverdueDays": "Kaç gün kontrol edilmezse hatırlatsın?",
+    "invalid": "Lütfen sıfırdan büyük sayılar yaz.",
+    "assistantEnabled": "Asistan",
+    "assistantEnabledDesc": "Kontrollerini okur, görev ve hatırlatma oluşturur. Kapatırsan uygulama sadece senin yazdıklarını tutar.",
+    "rulesSection": "Asistan ne yapsın?",
+    "numbersSection": "Senin sınırların",
+    "R1": "Kat dolumu kontrolü",
+    "R1Desc": "Kovana kat taktığında, katın ne kadar dolduğuna bakmanı hatırlatır.",
+    "R2": "İlaçlama hatırlatmaları",
+    "R2Desc": "Ürünü kovandan almanı, sonra da varroayı yeniden saymanı hatırlatır.",
+    "R3": "Ana arı kontrolü",
+    "R3Desc": "Ne ana arıyı ne de yumurtayı gördüysen, birkaç gün sonra tekrar bakmanı ister.",
+    "R4": "Varroa uyarısı",
+    "R4Desc": "Varroa sayısı senin sınırını geçince ilaçlama planlamanı ister.",
+    "R5": "Besleme kontrolü",
+    "R5Desc": "Bal azaldığında beslemeye bakmanı hatırlatır.",
+    "R7": "Bal bekleme süresi",
+    "R7Desc": "İlaçlama bittikten sonra balın hasat için uygun olacağı günü söyler."
   },
   "apiaries": {
     "title": "Arılıklar",
-    "empty": "Henüz arılık yok. Arılık, kovanlarının durduğu yerdir — ilk arılığını aşağıdan oluştur.",
+    "empty": "Henüz arılık yok. Arılık, kovanlarının durduğu yerdir. İlk arılığını aşağıdan oluştur.",
     "add": "Arılık ekle",
     "new": "Yeni arılık",
     "edit": "Arılığı düzenle",
@@ -108,13 +124,13 @@
     "latitude": "Enlem (isteğe bağlı, ileride hava durumu için)",
     "longitude": "Boylam (isteğe bağlı)",
     "notes": "Notlar",
-    "nameRequired": "Lütfen bir ad girin.",
-    "latLngInvalid": "Koordinatlar hatalı görünüyor — enlem -90 ile 90, boylam -180 ile 180 arasında olmalı.",
+    "nameRequired": "Lütfen bir ad yaz.",
+    "latLngInvalid": "Koordinatlar hatalı görünüyor. Enlem -90 ile 90, boylam -180 ile 180 arasında olmalı.",
     "delete": "Arılığı sil",
     "deleteTitle": "Bu arılık silinsin mi?",
-    "deleteMessage": "Listelerinden kaldırılacak. Kayıtları uygulamanın verisinde kalır, dışa aktarma ve yedeklerde yer alır — ama buradan geri getiremezsin.",
-    "deleteWithHives_one": "Burada duran {{count}} kovan da silinecek. Kontrol kayıtları uygulamanın verisinde kalır, ama kovan listelerinden kaldırılır ve buradan geri getiremezsin.",
-    "deleteWithHives_other": "Burada duran {{count}} kovan da silinecek. Kontrol kayıtları uygulamanın verisinde kalır, ama kovanlar listelerinden kaldırılır ve buradan geri getiremezsin."
+    "deleteMessage": "Listelerinden kalkacak. Kayıtları uygulamada kalır, dışa aktarma ve yedeklerde çıkar. Ama buradan geri getiremezsin.",
+    "deleteWithHives_one": "Burada duran {{count}} kovan da silinecek. Kontrolleri uygulamada kalır ama kovan listelerinden kalkar. Buradan geri getiremezsin.",
+    "deleteWithHives_other": "Burada duran {{count}} kovan da silinecek. Kontrolleri uygulamada kalır ama kovanlar listelerinden kalkar. Buradan geri getiremezsin."
   },
   "hives": {
     "empty": "Burada henüz kovan yok. İlk kovanını aşağıdan ekle.",
@@ -123,25 +139,25 @@
     "edit": "Düzenle",
     "label": "Etiket",
     "labelPlaceholder": "örn. K-07",
-    "labelRequired": "Lütfen bir etiket girin.",
+    "labelRequired": "Lütfen bir etiket yaz.",
     "type": "Kovan tipi",
     "notes": "Notlar",
     "delete": "Kovanı sil",
     "deleteTitle": "Bu kovan silinsin mi?",
-    "deleteMessage": "Listelerinden kaldırılacak, açık görevleri de onunla birlikte silinir. Kontrolleri, ana arıları ve ilaçlamaları uygulamanın verisinde kalır, dışa aktarma ve yedeklerde yer alır — ama kovanı buradan geri getiremezsin."
+    "deleteMessage": "Listelerinden kalkacak, açık görevleri de silinir. Kontrolleri, ana arıları ve ilaçlamaları uygulamada kalır. Ama kovanı buradan geri getiremezsin."
   },
   "hiveType": {
     "langstroth": {
       "label": "Langstroth (standart)",
-      "desc": "Türkiye'de ve dünyada en yaygın kovan: üst üste katlar ve çıkarılabilir çerçeveler. Dükkândan aldıysan büyük ihtimalle budur."
+      "desc": "Türkiye’de ve dünyada en yaygın kovan: üst üste katlar ve çıkarılabilir çerçeveler. Dükkândan aldıysan büyük ihtimalle budur."
     },
     "dadant": {
       "label": "Dadant",
-      "desc": "Langstroth'a benzer ama kuluçkalığı daha büyük ve derindir — ana arı tek büyük gövdede yumurtlar. Soğuk iklimlerde yaygın."
+      "desc": "Langstroth’a benzer ama kuluçkalığı daha büyük ve derindir. Ana arı tek büyük gövdede yumurtlar. Soğuk iklimlerde yaygın."
     },
     "top_bar": {
       "label": "Üst çıtalı (top-bar)",
-      "desc": "Uzun, yatay bir kovan. Arılar peteği tahta çıtalardan aşağı sarkıtarak örer — çerçeve ve kat yoktur."
+      "desc": "Uzun, yatay bir kovan. Arılar peteği tahta çıtalardan aşağı sarkıtarak örer. Çerçeve ve kat yoktur."
     },
     "warre": {
       "label": "Warré",
@@ -149,7 +165,7 @@
     },
     "traditional": {
       "label": "Kara kovan (geleneksel)",
-      "desc": "Sabit petekli kovanlar — kütük veya sepet. Petek kontrol için çıkarılamaz."
+      "desc": "Sabit petekli kovanlar: kütük veya sepet. Petek kontrol için çıkarılamaz."
     },
     "other": {
       "label": "Diğer",
@@ -174,19 +190,19 @@
     "languageTurkish": "Türkçe",
     "languageEnglish": "English",
     "assistant": "Asistan",
-    "about": "Beearc — ücretsiz, açık kaynak, çevrimdışı öncelikli arıcılık.",
+    "about": "Beearc: ücretsiz, açık kaynak, çevrimdışı çalışan arıcılık uygulaması.",
     "version": "Sürüm",
     "devSeed": "Örnek veri yükle (dev)",
     "devSeedDone": "Örnek arılık ve kovanlar oluşturuldu.",
-    "devSeedSkipped": "Veritabanı boş değil — hiçbir şey değiştirilmedi."
+    "devSeedSkipped": "Veritabanı boş değil. Hiçbir şey değiştirilmedi."
   },
   "inspections": {
     "new": "Yeni kontrol",
     "add": "Kontrol ekle",
     "timeline": "Kontroller",
-    "timelineEmpty": "Henüz kontrol yok. İlk kontrolünü aşağıdan kaydet — bir dakikadan kısa sürer.",
+    "timelineEmpty": "Henüz kontrol yok. İlk kontrolünü aşağıdan kaydet, bir dakikadan kısa sürer.",
     "factorsTitle": "Neleri kontrol ettin?",
-    "factorsHint": "Ana arı ve yumurta her zaman sorulur — iki dokunuş sürer ve uyarıları çalıştırır. Seçimin bir sonraki sefer için hatırlanır.",
+    "factorsHint": "Ana arı ve yumurta her zaman sorulur. İki dokunuş sürer ve uyarıları çalıştırır. Seçimin bir sonraki sefer için hatırlanır.",
     "factorBrood": "Yavru",
     "factorBroodDesc": "Yavrunun sağlığı: larva durumu ve kapalı yavru düzeninin ne kadar düzgün olduğu.",
     "factorStores": "Stok",
@@ -194,7 +210,7 @@
     "factorCondition": "Koloni ve kovan durumu",
     "factorConditionDesc": "Koloninin gücü (çerçeveleri kaplayan arı) ve kovan içindeki nem.",
     "factorVarroa": "Varroa sayımı",
-    "factorVarroaDesc": "Akar sayımı — gözle, yapışkan taban, alkol yıkama veya pudra şekeri. Zaman alır; saymadıysan atla.",
+    "factorVarroaDesc": "Akar sayımı: gözle, yapışkan taban, alkol yıkama veya pudra şekeri. Zaman alır, saymadıysan atla.",
     "factorPests": "Zararlılar ve hastalık",
     "factorPestsDesc": "Kovan böceği, mum güvesi, başka zararlı böcekler ve yavruda ya da arılarda hastalık belirtileri.",
     "factorTemperament": "Huy",
@@ -230,7 +246,7 @@
     "sectionQueen": "Ana arı",
     "inspectedAgo": "{{ago}} kontrol edildi",
     "edit": "Düzenle",
-    "editHint": "Bir kontrolü düzenlemek için zaman çizelgesinde kaydırın, silmek için ters yöne kaydırın.",
+    "editHint": "Bir kontrolü düzenlemek için sağa kaydır, silmek için sola kaydır.",
     "delete": "Sil",
     "deleteTitle": "Bu kontrol silinsin mi?",
     "deleteMessage": "Zaman çizelgesinden kalkar ve kovanın durum puanına artık sayılmaz. Kayıt saklanır, asla silinmez."
@@ -242,9 +258,9 @@
     "takePhoto": "Fotoğraf çek",
     "chooseFromLibrary": "Galeriden seç",
     "importing": "Hazırlanıyor…",
-    "importFailed": "Fotoğraf eklenemedi. Lütfen tekrar deneyin.",
-    "cameraDenied": "Beearc’in kamerayı kullanması için izin gerekiyor. Telefon ayarlarından açabilirsiniz.",
-    "libraryDenied": "Beearc’in fotoğraflarınızı açması için izin gerekiyor. Telefon ayarlarından açabilirsiniz.",
+    "importFailed": "Fotoğraf eklenemedi. Lütfen tekrar dene.",
+    "cameraDenied": "Beearc’in kamerayı kullanması için izin gerekiyor. Telefon ayarlarından açabilirsin.",
+    "libraryDenied": "Beearc’in fotoğraflarına ulaşması için izin gerekiyor. Telefon ayarlarından açabilirsin.",
     "remove": "Kaldır",
     "removeTitle": "Bu fotoğraf kaldırılsın mı?",
     "removeMessage": "Kaydettiğinizde bu kontrolden çıkar. Başka hiçbir şey silinmez.",
@@ -255,7 +271,7 @@
   },
   "queens": {
     "title": "Ana arı",
-    "current": "Mevcut ana",
+    "current": "Şu anki ana",
     "history": "Önceki analar",
     "new": "Yeni ana",
     "edit": "Anayı düzenle",
@@ -263,7 +279,7 @@
     "replace": "Anayı değiştir",
     "replaceTitle": "Anayı değiştir",
     "replaceWarning": "{{date}} tarihinde verilen ana, değiştirilmiş olarak kaydedilecek. Geçmişi korunur.",
-    "noneCurrent": "Bu kovan için henüz ana kaydı yok. Aşağıdan ekleyin; yaşını uygulama sizin için takip etsin.",
+    "noneCurrent": "Bu kovan için henüz ana kaydı yok. Aşağıdan ekle, yaşını uygulama takip etsin.",
     "noneShort": "Kayıtlı değil",
     "introduced": "Kovana verildi",
     "origin": "Kaynak",
@@ -275,7 +291,7 @@
     "ageNew": "Bu ay verildi",
     "ageMonths_one": "{{count}} aylık",
     "ageMonths_other": "{{count}} aylık",
-    "agingHint": "Üçüncü sezonunda — birçok arıcı bu yaştaki anayı değiştirir."
+    "agingHint": "Üçüncü sezonunda. Birçok arıcı bu yaştaki anayı değiştirir."
   },
   "queenOrigin": {
     "bred": "Kendi yetiştirdiğim",
@@ -312,19 +328,19 @@
     "customRecent": "Daha önce kullanılanlar",
     "customForget": "{{name}} ürününü listeden çıkar",
     "duration": "Kovanda kalma süresi",
-    "durationHint": "Asistan bu kadar gün sonra ürünü almanı hatırlatır. Kutunun üzerinde yazan, uygulamanın tahmininden önce gelir.",
+    "durationHint": "Asistan bu kadar gün sonra ürünü almanı hatırlatır. Kutunun üstünde yazan süre, uygulamanın tahmininden önce gelir.",
     "withdrawal": "Bal bekleme süresi",
-    "withdrawalHint": "Ürün alındıktan sonra balın hasada uygun hale gelmesi için geçmesi gereken gün sayısı. Ürün etiketine bak — 0 beklemek gerekmiyor demek, \"Belirtilmedi\" ise uygulama bu konuda hiçbir şey söylemez.",
+    "withdrawalHint": "Ürünü aldıktan sonra balın hasada uygun olması için kaç gün geçmeli? Ürünün etiketine bak. 0 seçersen beklemek gerekmez, “Belirtilmedi” seçersen uygulama bu konuda bir şey söylemez.",
     "harvestNotBefore": "{{date}} tarihinden önce hasat etme",
-    "harvestSafeNow": "{{date}} tarihinden beri bal temiz",
+    "harvestSafeNow": "{{date}} tarihinden beri bal hasada uygun",
     "notes": "Notlar",
     "end": "İlaçlamayı bitir",
     "endTitle": "İlaçlama bitirilsin mi?",
-    "endMessage": "Bugün kaldırılmış olarak kaydedilecek ve asistan sonrasında varroa sayımını hatırlatacak.",
-    "lastWarningTitle": "Dikkat — son ilaçlama",
+    "endMessage": "Bugün alınmış olarak kaydedilecek. Asistan sonrasında varroa saymanı hatırlatır.",
+    "lastWarningTitle": "Dikkat: son ilaçlama",
     "lastWarningBody": "{{product}}, {{date}} tarihinde başladı ({{ago}}). Olması gerekenden erken tekrar ilaçlamak koloniyi zehirleme ve balda kalıntı riski taşır.",
     "planTitle": "Varroa ilaçlaması",
-    "planMessage": "Varroa sayımı sınırınızın üzerindeydi. İlaçlamayı şimdi kaydetmek ister misiniz?",
+    "planMessage": "Varroa sayısı senin sınırının üzerindeydi. İlaçlamayı şimdi kaydetmek ister misin?",
     "planStart": "İlaçlama başlat",
     "planJustDone": "Sadece tamamlandı işaretle"
   },
@@ -379,15 +395,15 @@
     "new": "Yeni aktarım",
     "edit": "Aktarımı düzenle",
     "add": "Aktarım ekle",
-    "empty": "Bu kovana giren ya da çıkan bir şey yok. Verdiğiniz veya aldığınız yavrulu çerçeveyi kaydedin; her iki kovanın geçmişinde de görünür.",
+    "empty": "Bu kovana giren ya da çıkan bir şey yok. Verdiğin veya aldığın yavrulu çerçeveyi kaydet, iki kovanın geçmişinde de görünür.",
     "noneShort": "Henüz yok",
     "direction": "Hangi yöne?",
     "direction_gave": "{{hive}} verdi",
     "direction_received": "{{hive}} aldı",
     "otherHive_gave": "Hangi kovan aldı?",
     "otherHive_received": "Hangi kovan verdi?",
-    "noOtherHives": "Bu arılıkta başka kovan yok. Başka bir arılık seçin ya da önce ikinci bir kovan ekleyin.",
-    "pickHive": "Önce diğer kovanı seçin.",
+    "noOtherHives": "Bu arılıkta başka kovan yok. Başka bir arılık seç ya da önce ikinci bir kovan ekle.",
+    "pickHive": "Önce diğer kovanı seç.",
     "item": "Ne aktarıldı",
     "quantity": "Adet",
     "date": "Ne zaman",

@@ -9,6 +9,8 @@ import {
   evaluateTreatmentStarted,
   harvestSafeFrom,
   isMonthInWindow,
+  isRuleEnabled,
+  ruleGroupOf,
   ruleIdFromSource,
   ruleSource,
   varroaAboveThreshold,
@@ -277,6 +279,68 @@ describe('equipment and treatments', () => {
     expect(harvestSafeFrom(SEPT, 0)).toBeNull();
     expect(harvestSafeFrom(SEPT, null)).toBeNull();
     expect(harvestSafeFrom(null, 42)).toBeNull(); // still on the hive
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The assistant's switches (M6e)
+// ---------------------------------------------------------------------------
+
+describe('assistant switches', () => {
+  test("R2's two tasks share one switch — they are one decision to a person", () => {
+    expect(ruleGroupOf('R2_END')).toBe('R2');
+    expect(ruleGroupOf('R2_RECOUNT')).toBe('R2');
+    expect(ruleGroupOf('R3')).toBe('R3');
+    expect(ruleGroupOf('R7')).toBe('R7');
+  });
+
+  test('everything is on by default — the assistant works out of the box', () => {
+    for (const id of ['R1', 'R2_END', 'R2_RECOUNT', 'R3', 'R4', 'R5', 'R7'] as const) {
+      expect(isRuleEnabled(S, id)).toBe(true);
+    }
+  });
+
+  test('the master switch beats every individual one', () => {
+    const off = { ...S, assistantEnabled: false };
+    expect(isRuleEnabled(off, 'R3')).toBe(false);
+    expect(isRuleEnabled(off, 'R7')).toBe(false);
+  });
+
+  test('turning one rule off leaves the others alone', () => {
+    const s = { ...S, ruleEnabled: { ...S.ruleEnabled, R4: false } };
+    expect(isRuleEnabled(s, 'R4')).toBe(false);
+    expect(isRuleEnabled(s, 'R3')).toBe(true);
+    expect(isRuleEnabled(s, 'R5')).toBe(true);
+  });
+
+  test('switching R2 off silences BOTH of its tasks', () => {
+    const s = { ...S, ruleEnabled: { ...S.ruleEnabled, R2: false } };
+    expect(isRuleEnabled(s, 'R2_END')).toBe(false);
+    expect(isRuleEnabled(s, 'R2_RECOUNT')).toBe(false);
+  });
+
+  test('the master switch does not erase the per-rule choices', () => {
+    // Turning the assistant back on must restore exactly the setup you had,
+    // so the individual flags are preserved while it is off.
+    const s = {
+      ...S,
+      assistantEnabled: false,
+      ruleEnabled: { ...S.ruleEnabled, R4: false },
+    };
+    expect(isRuleEnabled({ ...s, assistantEnabled: true }, 'R4')).toBe(false);
+    expect(isRuleEnabled({ ...s, assistantEnabled: true }, 'R3')).toBe(true);
+  });
+
+  test('an assistant that is off has no opinion about a hive either', () => {
+    // R3 is urgent, but a silenced assistant must not colour anything.
+    const facts = {
+      openRuleSources: [ruleSource('R3')],
+      lastInspectedAt: JUNE,
+      hiveCreatedAt: JUNE,
+      nowIso: JUNE,
+    };
+    expect(deriveHiveStatus(facts, S)).toBe('urgent');
+    expect(deriveHiveStatus(facts, { ...S, assistantEnabled: false })).toBe('healthy');
   });
 });
 

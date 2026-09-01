@@ -263,11 +263,7 @@ export function TreatmentForm({
 
         {/* Sits under the two day counts because it is the question they
             raise: those dates become reminders — should they ring? */}
-        <NotifyToggle
-          value={notify}
-          onChange={setNotify}
-          hint={t('notify.treatmentHint')}
-        />
+        <NotifyToggle value={notify} onChange={setNotify} hintKey="notify.treatmentHint" />
 
         {showEnded ? (
           <>

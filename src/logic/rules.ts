@@ -53,6 +53,31 @@ export const RULE_DEFS: Record<RuleTaskId, RuleDef> = {
   R7: { severity: null, title: 'Withdrawal period over — honey safe to harvest' },
 };
 
+/**
+ * What the beekeeper switches on and off (M6e). R2 books two tasks — end the
+ * treatment, then recount — but they are one decision to a person, so they
+ * share one switch. R6 is not here: it writes no task, only the hidden
+ * status column, and it follows the master switch.
+ */
+export const RULE_GROUPS = ['R1', 'R2', 'R3', 'R4', 'R5', 'R7'] as const;
+export type RuleGroup = (typeof RULE_GROUPS)[number];
+
+/** Which switch governs a rule task. 'R2_END' and 'R2_RECOUNT' → 'R2'. */
+export function ruleGroupOf(id: RuleTaskId): RuleGroup {
+  return (id.startsWith('R2') ? 'R2' : id) as RuleGroup;
+}
+
+/**
+ * May this rule create a task right now? The master switch wins over the
+ * individual ones, so turning the assistant off is one tap and needs no
+ * unpicking of six others — and turning it back on restores exactly the
+ * per-rule choices that were there before.
+ */
+export function isRuleEnabled(s: RuleSettings, id: RuleTaskId): boolean {
+  if (!s.assistantEnabled) return false;
+  return s.ruleEnabled[ruleGroupOf(id)] !== false;
+}
+
 /** tasks.source value for a rule task, e.g. "rule:R3" (master prompt §6). */
 export const ruleSource = (id: RuleTaskId): string => `rule:${id}`;
 
@@ -100,6 +125,14 @@ export interface RuleSettings {
   feedingCheckDays: number;
   /** R2: days after treatment end until the varroa recount. */
   postTreatmentRecountDays: number;
+  /**
+   * The master switch (M6e). Off = the assistant creates nothing and colours
+   * nothing; the app becomes a pure record book. Existing tasks are left
+   * alone — silencing the assistant must not delete work already booked.
+   */
+  assistantEnabled: boolean;
+  /** Per-rule switches, all on by default. */
+  ruleEnabled: Record<RuleGroup, boolean>;
 }
 
 /**
@@ -169,6 +202,8 @@ export function defaultRuleSettings(latitude?: number | null): RuleSettings {
     varroaPlanDays: 2,
     feedingCheckDays: 5,
     postTreatmentRecountDays: 7,
+    assistantEnabled: true,
+    ruleEnabled: { R1: true, R2: true, R3: true, R4: true, R5: true, R7: true },
   };
 }
 
@@ -365,6 +400,8 @@ export interface HiveStatusFacts {
  * - R6: in season, no inspection for >inspectionOverdueDays → warning
  */
 export function deriveHiveStatus(facts: HiveStatusFacts, s: RuleSettings): HiveStatus {
+  // Assistant off = no opinions at all, including the hidden status column.
+  if (!s.assistantEnabled) return 'healthy';
   let status: HiveStatus = 'healthy';
   for (const source of facts.openRuleSources) {
     const id = ruleIdFromSource(source);

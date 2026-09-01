@@ -2,7 +2,7 @@
 
 > Update this file at the end of every session so the next session resumes with zero context loss.
 
-**Last updated:** 2026-08-27
+**Last updated:** 2026-08-28
 
 ## Current milestone
 
@@ -18,7 +18,9 @@
 
 **M6d — the notification bell: ✅ code complete (2026-08-27), device acceptance PENDING.** Migration **0007**, **SCHEMA_VERSION 8**. See its section below.
 
-**Next: the user tests M5, M6, M6b, M6c and M6d together on the phone, then M7 (export & local backup).**
+**M6e — icon-only bell, a switchable assistant, and the Turkish pass: ✅ code complete (2026-08-28), device acceptance PENDING.** No migration. See its section below.
+
+**Next: the user tests M5, M6, M6b, M6c, M6d and M6e together on the phone, then M7 (export & local backup).**
 
 **⚠️ THE WITHDRAWAL-PERIOD DEFAULTS ARE UNVERIFIED AND NEED THE BEEKEEPER'S CORRECTION.** `treatmentWithdrawalDays` in `src/logic/rules.ts` was written by Claude from general practice, not from Turkish product labels. They are marked as such in the code. Every treatment's own value is editable on the form, so a wrong default is recoverable — but they should be checked against the actual boxes before this ships to anyone else.
 
@@ -228,6 +230,25 @@ User request 2026-08-27: a bell button next to the treatment deadlines that turn
 - Permission is still requested lazily and now only for tasks that will actually ring: the `notify` guard sits **before** `ensurePermission()`, so a beekeeper who mutes everything is never asked at all.
 - Verified off-device: `tsc --noEmit` clean, **108/108 Jest green**, en/tr parity **379/379**, eslint unchanged (1 pre-existing error + 3 pre-existing warnings), and migration 0007 checked in real SQLite both ways — fresh 0000→0007, and a 0006→0007 upgrade where **existing tasks and treatments come out with `notify = 1`**, so nothing already on the phone goes silent.
 
+### M6e — Icon-only bell, a switchable assistant, and the Turkish pass ✅ code complete (2026-08-28, device acceptance pending)
+
+Three user requests 2026-08-28. **No migration** — the switches live in the existing `rule_settings` JSON, so SCHEMA_VERSION stays 8.
+
+- **The bell is now an icon and nothing else.** The explanation appears on the FIRST tap only (settings key `notify_hint_seen`, the same one-time-hint pattern as the swipe hint), then never again. A paragraph you have already read is noise on every later form. The words the button no longer shows moved into `accessibilityLabel` / `accessibilityHint`, so a screen reader still announces the state.
+- **The assistant has a master switch, plus one per rule.** `assistantEnabled` and `ruleEnabled` (R1, R2, R3, R4, R5, R7) in `RuleSettings`, edited in Settings → Assistant. **R2's two tasks share one switch** — ending a treatment and recounting after it are one decision to a person. R6 has no switch: it writes no task, only the hidden status column, and follows the master switch.
+- `isRuleEnabled()` is pure and tested (7 new tests, **115 total**). **One gate, in `materializeDrafts`** — the single place drafts become rows — so the evaluate functions stay pure arithmetic and remain testable without settings.
+- **The master switch does not erase the per-rule choices**, and turning the assistant off **leaves existing tasks alone**. Silencing an assistant is not the same as deleting work already booked; switching it back on restores exactly the setup that was there.
+- With the assistant off, `deriveHiveStatus` returns `healthy` for everything: no tasks, no colours, no opinions. The app becomes a pure record book.
+- The per-rule switches stay VISIBLE but dimmed when the master switch is off — hiding them would make the app look like it had forgotten the choices, which it has not.
+- **The Turkish pass (48 strings).** The beekeeper's complaint was exact: *"her halükârda falan yazmışsın, olmaz"*. Fixed, plus everything of the same kind:
+  - `her hâlükârda` → `her durumda`; `Mevcut ana` → `Şu anki ana`.
+  - Every remaining formal *siz* form became informal *sen* (`girin`→`yaz`, `seçin`→`seç`, `deneyin`→`dene`, `bakın`→`bak`, `ister misiniz`→`ister misin`, `açabilirsiniz`→`açabilirsin`). **The file no longer mixes registers** — that mix was the open question from 2026-08-26 and this settles it as informal throughout.
+  - All **16 em-dashes** became commas, periods or colons. The em-dash used that way is an English habit, not Turkish punctuation.
+  - Straight apostrophes → typographic (`Türkiye'de` → `Türkiye’de`).
+  - My own long clause-stacked sentences (the delete confirmations, the withdrawal hint) were cut into short ones.
+- **Two English strings changed too**, because they had drifted: `inspections.editHint` said "or the other way" without naming a direction (now right = edit, left = delete, matching the code), and `rulesSettings.title`/`hint` now describe a switchable assistant.
+- Verified off-device: `tsc --noEmit` clean, **115/115 Jest green**, en/tr parity **395/395** with every `t()` key resolving and placeholders agreeing, eslint unchanged (1 pre-existing error + 3 pre-existing warnings), and an automated re-scan finds **0** formal-*siz* forms, **0** heavy words and **0** em-dashes left in the Turkish file.
+
 ## Then (M7 — Export & local backup)
 
 - [ ] CSV export (one file per table, zipped) + PDF inspection report via expo-print, shared through the share sheet
@@ -290,6 +311,10 @@ User request 2026-08-27: a bell button next to the treatment deadlines that turn
 - M6d: the bell lives on the TREATMENT, not only on the tasks it creates, because R7 is booked later (when the treatment ends, often from the one-tap button) and there is no form to ask on at that moment
 - M6d: a muted task shows a "Silent" marker. A reminder that never arrives and never said it wouldn't is worse than no feature at all
 - M6d: the marker on a Today row is deliberately NOT a button — M4b removed tap targets from task rows for glove safety, and an accidental mute fails silently. Revisit only if the beekeeper asks for one-tap muting
+- **M6e: Turkish is informal (*sen*) and plain, throughout (user decision 2026-08-28).** No *siz* forms, no heavy or Ottoman-flavoured vocabulary, no English-style em-dashes. The beekeeper's rule: *"daha basit ve yeni bir türkçe"*. When adding a string, match this or it will read as a different app
+- M6e: a one-time hint beats a permanent paragraph. The bell explains itself on first tap and then gets out of the way — the same pattern as the swipe hint on Today
+- **M6e: the assistant is optional (user request 2026-08-28).** Master switch plus one per rule. Turning it off creates nothing and colours nothing but NEVER deletes tasks already booked, and it remembers the per-rule choices so switching back on restores the same setup
+- M6e: R2's two tasks share one switch — "take the product off" and "recount afterwards" are one decision to a beekeeper, even though they are two rows to the engine
 
 ## Known bugs
 
@@ -333,6 +358,7 @@ Verified against real SQLite (`python3`, script kept out of the repo): the pre-r
 - **M6b device checklist:** on Today, swipe a task right (the editor should open straight away) and left (a RED Delete button should appear); check the hint card now matches what you see. Then, in the Hives tab: swipe an apiary row each way, and a hive row each way. Delete a hive that has an open task and confirm the task disappears from Today. Delete an apiary that has hives and confirm the dialog names the hive count. Check the red is readable in sunlight in BOTH themes.
 - **M6c device checklist:** add a treatment and confirm the last-treatment warning now reads properly in Turkish; check "leave on for" is prefilled per product and that switching product re-fills it; pick **Other**, type a name, save, then add another Other treatment and confirm the name appears as a chip with its day counts — tap it, then try the × and confirm the chip goes but the old treatment still shows its name; set a withdrawal period, end the treatment, and confirm Today gets the "honey safe to harvest" task on the right day and the hive shows "Do not harvest before ___" until then; set withdrawal to **Not set** and confirm the app says nothing at all; start a new inspection and confirm **queen and eggs both start on Yes**
 - **M6d device checklist:** create a task due today with the bell OFF and confirm no notification arrives (and that the row shows the "Silent" marker); create one with the bell ON and confirm it does; swipe an existing task right and toggle its bell, then check the marker appears/disappears; do the same on a RULE task (the bell must be editable even though title and hive are locked); set a treatment's bell to off and confirm neither the removal reminder nor the recount nor the withdrawal task rings, while all three still appear on Today; **check an existing task from before this update still notifies** (the migration defaults everything to on)
+- **M6e device checklist:** tap a bell for the first time and confirm the one-time explanation appears, then tap it again on another screen and confirm it does NOT; in Settings → Asistan turn the master switch off, log an inspection with no queen and no eggs, and confirm NO task appears and the hive does not turn red; turn it back on and confirm the per-rule switches are exactly as you left them; turn off just "Varroa uyarısı" and confirm a high mite count creates nothing while a low-stores inspection still creates the feeding task; **read every Turkish screen for wording** — this is the pass that needs your eye most
 - **M5 device checklist** (still outstanding — run it in the same session as M6's): queen add/replace + age in months, NO color preselected; treatment add shows the last-treatment warning; "end treatment" closes the end-reminder and creates the recount task; high varroa count (alcohol wash, >9 mites in season) → check off "Plan varroa treatment" → 3-way prompt; swipe an inspection each way (edit / delete) and tap one to view it; edit a "no queen seen" to "yes" and watch the recheck task disappear; hive list shows "Inspected X ago" tinted by age; **add a deep super and check Today for the fill-check task 10 days out**; **take it off again from the equipment screen**; **record a transfer from one hive and confirm the OTHER hive's list shows the same move the other way round**; **put enough equipment on one hive that the summary line overflows, then drag it sideways with a finger and check a tap still opens the list**; **log an inspection with "other harmful insects — yes" and check it survives to the detail screen and the timeline card**; both themes, both languages, airplane mode
 - TR terminology NOT yet device-verified — M6 adds the `photos.*` block ("Fotoğraf ekle", "Galeriden seç", "Hazırlanıyor…") and the two native permission strings in `assets/locales/tr.json`; plus M5's "İlaçlama" for treatments, "Sessiz ana değişimi" for supersedure, "Oğuldan" for swarm origin, "Kovana verildi" for the introduction date, the product names, and all of M5b's equipment/transfer wording ("Derin kat", "Yarım kat", "Kuluçkalık", "Ana arı ızgarası", "Erkek arı çerçevesi", "Polen tuzağı", "Kışlık yalıtım", "Yavrulu çerçeve", "Ana arı memesi", "Arı (silkme)", "Aktarımlar")
 - Terminal gotcha (happened once): user ran npm/expo commands in `~` instead of the project folder — always `cd ~/dev/beearc` first

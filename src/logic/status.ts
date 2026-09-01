@@ -16,6 +16,7 @@ import {
   evaluateInspection,
   evaluateTreatmentEnded,
   evaluateTreatmentStarted,
+  isRuleEnabled,
   ruleSource,
   type RuleSettings,
   type RuleTaskDraft,
@@ -50,6 +51,10 @@ export async function getRuleSettings(latitude?: number | null): Promise<RuleSet
       treatmentWithdrawalDays: {
         ...base.treatmentWithdrawalDays,
         ...(stored.treatmentWithdrawalDays ?? {}),
+      },
+      ruleEnabled: {
+        ...base.ruleEnabled,
+        ...(stored.ruleEnabled ?? {}),
       },
       season: stored.season ?? base.season,
       preWinter: stored.preWinter ?? base.preWinter,
@@ -100,13 +105,19 @@ export async function recomputeAllHiveStatuses(): Promise<void> {
 /**
  * Create the drafted tasks (skipping duplicates) and schedule reminders.
  * `notify: false` (M6d) still creates the task — it just never rings.
+ *
+ * ONE gate for the whole assistant (M6e): a switched-off rule is filtered
+ * here, at the single place drafts become rows. The pure evaluate functions
+ * stay unaware of it, so the rules keep being testable as plain arithmetic.
  */
 async function materializeDrafts(
   hive: Hive,
   drafts: RuleTaskDraft[],
+  settings: RuleSettings,
   notify = true
 ): Promise<void> {
   for (const draft of drafts) {
+    if (!isRuleEnabled(settings, draft.ruleId)) continue;
     // Guard: two bad inspections in a row must not stack identical tasks.
     if (await tasksRepo.hasOpenBySource(hive.id, draft.source)) continue;
     const task = await tasksRepo.create({
@@ -142,7 +153,7 @@ export async function applyInspectionRules(inspection: Inspection): Promise<void
     },
     settings
   );
-  await materializeDrafts(hive, drafts);
+  await materializeDrafts(hive, drafts, settings);
   await recomputeHiveStatus(inspection.hiveId);
 }
 
@@ -220,7 +231,7 @@ export async function syncInspectionRules(hiveId: string): Promise<void> {
     await cancelTaskNotification(stale.id);
   }
 
-  await materializeDrafts(hive, drafts);
+  await materializeDrafts(hive, drafts, settings);
   await recomputeHiveStatus(hiveId);
 }
 
@@ -237,10 +248,7 @@ export async function applyEquipmentAdded(item: Equipment): Promise<void> {
   const hive = await hivesRepo.getById(item.hiveId);
   if (!hive) return;
   const settings = await settingsForHive(hive);
-  await materializeDrafts(
-    hive,
-    evaluateEquipmentAdded(item.item, item.addedAt, settings)
-  );
+  await materializeDrafts(hive, evaluateEquipmentAdded(item.item, item.addedAt, settings), settings);
 }
 
 /**
@@ -267,6 +275,7 @@ export async function applyTreatmentStarted(treatment: Treatment): Promise<void>
       settings,
       treatment.durationDays
     ),
+    settings,
     treatment.notify
   );
 }
@@ -288,6 +297,7 @@ export async function applyTreatmentEnded(treatment: Treatment): Promise<void> {
     hive,
     // R7 rides along when the treatment carries a withdrawal period.
     evaluateTreatmentEnded(treatment.endedAt, settings, treatment.withdrawalDays),
+    settings,
     // The bell set on the treatment governs the reminders it books — R7 is
     // created here, long after the form that asked the question.
     treatment.notify

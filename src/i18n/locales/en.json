@@ -87,13 +87,29 @@
     "R7": "Withdrawal period over — honey safe to harvest"
   },
   "rulesSettings": {
-    "title": "Assistant rules",
-    "hint": "The assistant reads your inspections and creates tasks and hive alerts by itself. You can tune its limits here. The active season is set automatically from each apiary's location.",
+    "title": "Assistant",
+    "hint": "The assistant reads your inspections and creates tasks and hive alerts by itself. Choose what it does and set its limits here. The active season is worked out from each apiary’s location.",
     "varroaSeasonPct": "Varroa alarm in season (%, wash/roll)",
     "varroaPreWinterPct": "Varroa alarm before winter (%)",
     "stickyBoardPerDay": "Sticky board alarm (mites per day)",
     "inspectionOverdueDays": "Remind when not inspected for (days)",
-    "invalid": "Please enter numbers greater than zero."
+    "invalid": "Please enter numbers greater than zero.",
+    "assistantEnabled": "Assistant",
+    "assistantEnabledDesc": "Reads your inspections and creates tasks and reminders. Turn it off and the app only keeps what you write.",
+    "rulesSection": "What the assistant does",
+    "numbersSection": "Your limits",
+    "R1": "Super fill check",
+    "R1Desc": "When you put a super on, reminds you to see how it is filling.",
+    "R2": "Treatment reminders",
+    "R2Desc": "Reminds you to take the product off, then to count varroa again afterwards.",
+    "R3": "Queen recheck",
+    "R3Desc": "If you saw neither the queen nor eggs, asks you to look again in a few days.",
+    "R4": "Varroa alarm",
+    "R4Desc": "When the mite count goes over your limit, asks you to plan a treatment.",
+    "R5": "Feeding check",
+    "R5Desc": "When honey stores run low, reminds you to check feeding.",
+    "R7": "Honey withdrawal",
+    "R7Desc": "After a treatment ends, tells you the day the honey is safe to harvest."
   },
   "apiaries": {
     "title": "Apiaries",
@@ -230,7 +246,7 @@
     "sectionQueen": "Queen",
     "inspectedAgo": "Inspected {{ago}}",
     "edit": "Edit",
-    "editHint": "Swipe an inspection in the timeline to edit it, or the other way to delete it.",
+    "editHint": "Swipe an inspection right to edit it, or left to delete it.",
     "delete": "Delete",
     "deleteTitle": "Delete this inspection?",
     "deleteMessage": "It leaves the timeline and stops counting toward this hive's condition. The record is kept, never erased."
