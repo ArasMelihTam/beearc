@@ -43,6 +43,13 @@
       "when": 1786537994252,
       "tag": "0005_friendly_ultimatum",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1788293004628,
+      "tag": "0006_sleepy_colonel_america",
+      "breakpoints": true
     }
   ]
 }

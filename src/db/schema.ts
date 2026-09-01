@@ -178,9 +178,27 @@ export const treatments = sqliteTable('treatments', {
     .notNull()
     .references(() => hives.id),
   product: text('product', { enum: TREATMENT_PRODUCTS }).notNull(),
+  /**
+   * The name typed in when `product` is 'other' (M6c). Stored on the row, not
+   * only in the remembered-names list, so forgetting a name from the picker
+   * can never rewrite what a past treatment says it was.
+   */
+  customProduct: text('custom_product'),
   dose: text('dose'),
   startedAt: text('started_at').notNull(),
   endedAt: text('ended_at'),
+  /**
+   * How many days it should stay on the hive — R2's "remove it" reminder.
+   * Prefilled from the product but editable, because the bottle in your hand
+   * outranks a table in the app. null = fall back to the product default.
+   */
+  durationDays: integer('duration_days'),
+  /**
+   * Days after removal before honey is safe to harvest (R7). Copied onto the
+   * row at entry time rather than read from settings later, so changing a
+   * setting next season cannot silently re-date a past harvest window.
+   */
+  withdrawalDays: integer('withdrawal_days'),
   notes: text('notes'),
 });
 

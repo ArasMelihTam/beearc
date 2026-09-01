@@ -12,12 +12,17 @@ import { inspectionPhotosRepo } from '@/src/db/repos/inspectionPhotosRepo';
 import { inspectionsRepo, type Inspection } from '@/src/db/repos/inspectionsRepo';
 import { queensRepo, type Queen } from '@/src/db/repos/queensRepo';
 import { transfersRepo, type TransferWithHives } from '@/src/db/repos/transfersRepo';
-import { treatmentsRepo, type Treatment } from '@/src/db/repos/treatmentsRepo';
+import {
+  treatmentProductLabel,
+  treatmentsRepo,
+  type Treatment,
+} from '@/src/db/repos/treatmentsRepo';
 import { RecencyLine } from '@/src/components/RecencyLine';
 import { SwipeableRow } from '@/src/components/SwipeableRow';
-import { formatAgo, formatDateTime } from '@/src/i18n/formatDate';
+import { formatAgo, formatDate, formatDateTime } from '@/src/i18n/formatDate';
 import { formatQueenAge } from '@/src/i18n/formatQueen';
 import { isQueenAging, queenAgeMonths } from '@/src/logic/queens';
+import { harvestSafeFrom } from '@/src/logic/rules';
 import { directionFor } from '@/src/logic/transfers';
 import { getHiveRecency, syncInspectionRules } from '@/src/logic/status';
 import { useTheme } from '@/src/theme/useTheme';
@@ -104,6 +109,27 @@ export default function HiveDetailScreen() {
     return `${what} · ${where}`;
   })();
 
+  /**
+   * The last treatment's line, plus the honey withdrawal period when one is
+   * still running (M6c). This is stated as a fact with a date — it is not a
+   * verdict about the colony, and it says nothing at all when the treatment
+   * carried no withdrawal figure. An app must never imply a harvest is safe.
+   */
+  const treatmentValue = (() => {
+    if (!lastTreatment) return { text: t('treatments.noneShort'), restricted: false };
+    const when =
+      lastTreatment.endedAt === null
+        ? t('treatments.ongoing')
+        : formatAgo(lastTreatment.startedAt);
+    let text = `${treatmentProductLabel(lastTreatment, t)} · ${when}`;
+    const safeFrom = harvestSafeFrom(lastTreatment.endedAt, lastTreatment.withdrawalDays);
+    const restricted = safeFrom != null && new Date(safeFrom) > new Date();
+    if (restricted) {
+      text += ` · ${t('treatments.harvestNotBefore', { date: formatDate(safeFrom!) })}`;
+    }
+    return { text, restricted };
+  })();
+
   const removeInspection = (inspection: Inspection) => {
     Alert.alert(t('inspections.deleteTitle'), t('inspections.deleteMessage'), [
       { text: t('common.cancel'), style: 'cancel' },
@@ -171,15 +197,8 @@ export default function HiveDetailScreen() {
               <SummaryRow
                 icon="medical-bag"
                 label={t('treatments.title')}
-                value={
-                  lastTreatment
-                    ? `${t(`treatmentProduct.${lastTreatment.product}`)} · ${
-                        lastTreatment.endedAt === null
-                          ? t('treatments.ongoing')
-                          : formatAgo(lastTreatment.startedAt)
-                      }`
-                    : t('treatments.noneShort')
-                }
+                value={treatmentValue.text}
+                valueColor={treatmentValue.restricted ? tokens.statusWarning : undefined}
                 onPress={() => router.push(`/hives/${hive.id}/treatments`)}
               />
               <SummaryRow

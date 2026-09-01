@@ -7,6 +7,7 @@ import {
   evaluateInspection,
   evaluateTreatmentEnded,
   evaluateTreatmentStarted,
+  harvestSafeFrom,
   isMonthInWindow,
   ruleIdFromSource,
   ruleSource,
@@ -217,6 +218,65 @@ describe('equipment and treatments', () => {
     const drafts = evaluateTreatmentEnded(SEPT, S);
     expect(drafts.map((d) => d.ruleId)).toEqual(['R2_RECOUNT']);
     expect(drafts[0].dueAt).toBe(dueInDays(SEPT, 7));
+  });
+
+  // --- M6c: a duration recorded on the treatment beats the product table ---
+
+  test('R2 start: a recorded duration overrides the product default', () => {
+    // The box in your hand says four weeks; our table says six.
+    expect(evaluateTreatmentStarted('amitraz', JUNE, S, 28)[0].dueAt).toBe(
+      dueInDays(JUNE, 28)
+    );
+  });
+
+  test('R2 start: a custom product gets a reminder ONLY via its own duration', () => {
+    // This is the whole point of M6c — before it, every 'other' treatment
+    // was silent, and custom products would have been the common case.
+    expect(evaluateTreatmentStarted('other', JUNE, S)).toEqual([]);
+    expect(evaluateTreatmentStarted('other', JUNE, S, 21)[0].dueAt).toBe(
+      dueInDays(JUNE, 21)
+    );
+  });
+
+  test('R2 start: duration 0 means "no removal reminder", not "remind today"', () => {
+    expect(evaluateTreatmentStarted('other', JUNE, S, 0)[0].dueAt).toBe(dueInDays(JUNE, 0));
+    // null is the "I don't know" case and stays silent.
+    expect(evaluateTreatmentStarted('other', JUNE, S, null)).toEqual([]);
+  });
+
+  // --- M6c / R7: the honey withdrawal period ---
+
+  test('R7: a withdrawal period books the day the honey is clear again', () => {
+    const drafts = evaluateTreatmentEnded(SEPT, S, 42);
+    expect(drafts.map((d) => d.ruleId)).toEqual(['R2_RECOUNT', 'R7']);
+    expect(drafts[1].dueAt).toBe(dueInDays(SEPT, 42));
+  });
+
+  test('R7: stays silent when the withdrawal is zero or unknown', () => {
+    // 0 = nothing to wait for (formic acid). null = we do not know, and an
+    // app must never imply a harvest is safe on a guess.
+    expect(evaluateTreatmentEnded(SEPT, S, 0).map((d) => d.ruleId)).toEqual(['R2_RECOUNT']);
+    expect(evaluateTreatmentEnded(SEPT, S, null).map((d) => d.ruleId)).toEqual(['R2_RECOUNT']);
+    expect(evaluateTreatmentEnded(SEPT, S).map((d) => d.ruleId)).toEqual(['R2_RECOUNT']);
+  });
+
+  test('R7 never colours the hive — a withdrawal period is not a sick colony', () => {
+    expect(deriveHiveStatus(
+      {
+        openRuleSources: [ruleSource('R7')],
+        lastInspectedAt: JUNE,
+        hiveCreatedAt: JUNE,
+        nowIso: JUNE,
+      },
+      S
+    )).toBe('healthy');
+  });
+
+  test('harvestSafeFrom: a date only when there is genuinely something to wait for', () => {
+    expect(harvestSafeFrom(SEPT, 42)).toBe(dueInDays(SEPT, 42));
+    expect(harvestSafeFrom(SEPT, 0)).toBeNull();
+    expect(harvestSafeFrom(SEPT, null)).toBeNull();
+    expect(harvestSafeFrom(null, 42)).toBeNull(); // still on the hive
   });
 });
 

@@ -60,8 +60,19 @@ export function InspectionForm({
   const { t } = useTranslation();
   const { tokens } = useTheme();
 
-  const [queenSeen, setQueenSeen] = useState(initial?.queenSeen ?? false);
-  const [eggsSeen, setEggsSeen] = useState(initial?.eggsSeen ?? false);
+  /**
+   * Queen and eggs start on YES (user decision 2026-08-25, rule 7): on a
+   * healthy colony you nearly always see them, so the common inspection now
+   * needs no taps here at all — you only touch these when something is wrong.
+   *
+   * This cannot raise a false alarm, because R3 only fires when BOTH are set
+   * to no. The trade it makes is the opposite one: a beekeeper who never
+   * looked leaves "yes" standing, and the assistant stays quiet. That is the
+   * beekeeper's call to make, and it keeps the app's rule intact — nothing
+   * here ever reads "not seen" as "not there".
+   */
+  const [queenSeen, setQueenSeen] = useState(initial?.queenSeen ?? true);
+  const [eggsSeen, setEggsSeen] = useState(initial?.eggsSeen ?? true);
   const [larvaeCondition, setLarvaeCondition] = useState<number | null>(
     initial?.larvaeCondition ?? null
   );

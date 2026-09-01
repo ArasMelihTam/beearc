@@ -28,7 +28,7 @@ import type {
  * R2 produces two different tasks (end the treatment, then recount varroa),
  * so it appears twice with distinct ids.
  */
-export const RULE_TASK_IDS = ['R1', 'R2_END', 'R2_RECOUNT', 'R3', 'R4', 'R5'] as const;
+export const RULE_TASK_IDS = ['R1', 'R2_END', 'R2_RECOUNT', 'R3', 'R4', 'R5', 'R7'] as const;
 export type RuleTaskId = (typeof RULE_TASK_IDS)[number];
 
 export interface RuleDef {
@@ -48,6 +48,9 @@ export const RULE_DEFS: Record<RuleTaskId, RuleDef> = {
   R3: { severity: 'urgent', title: 'Recheck for queen/eggs' },
   R4: { severity: 'urgent', title: 'Plan varroa treatment' },
   R5: { severity: 'warning', title: 'Check feeding' },
+  // R7 is good news, not a chore: it lands on the day the honey is clear
+  // again. Severity null — a withdrawal period is not a sick colony.
+  R7: { severity: null, title: 'Withdrawal period over — honey safe to harvest' },
 };
 
 /** tasks.source value for a rule task, e.g. "rule:R3" (master prompt §6). */
@@ -85,6 +88,8 @@ export interface RuleSettings {
   preWinter: SeasonWindow;
   /** R2: typical treatment length per product; null = unknown, no auto end-task. */
   treatmentDurationDays: Record<TreatmentProduct, number | null>;
+  /** R7: days after removal before honey is safe to harvest. null = unknown. */
+  treatmentWithdrawalDays: Record<TreatmentProduct, number | null>;
   /** R1: days until "check super fill progress". */
   superCheckDays: number;
   /** R3: days until "recheck for queen/eggs". */
@@ -134,6 +139,29 @@ export function defaultRuleSettings(latitude?: number | null): RuleSettings {
       tau_fluvalinate: 42,
       coumaphos_strip: 42,
       coumaphos_trickle: 7,
+      other: null,
+    },
+    /**
+     * R7 — days after a treatment is REMOVED before honey may be harvested.
+     *
+     * ⚠️ THESE ARE PROPOSED DEFAULTS, NOT VERIFIED FIGURES. Withdrawal
+     * periods differ by product, formulation and country, and the label on
+     * the box is the authority — not this table. They are editable in
+     * Settings → Assistant for exactly that reason, and the beekeeper is
+     * asked to confirm them (rule 7). 0 = no withdrawal period.
+     *
+     * `other` is null because an unknown product has an unknown withdrawal:
+     * the form asks for it per treatment instead of inventing one.
+     */
+    treatmentWithdrawalDays: {
+      formic_acid: 0, // organic, does not accumulate in honey
+      oxalic_acid: 0, // organic, but supers should be off during application
+      thymol: 28, // can taint honey with its smell for weeks
+      amitraz: 14,
+      flumethrin: 42,
+      tau_fluvalinate: 42,
+      coumaphos_strip: 42, // persistent in wax — the most cautious of the set
+      coumaphos_trickle: 42,
       other: null,
     },
     superCheckDays: 10,
@@ -271,16 +299,50 @@ export function evaluateEquipmentAdded(
 export function evaluateTreatmentStarted(
   product: TreatmentProduct,
   startedAtIso: string,
-  s: RuleSettings
+  s: RuleSettings,
+  /**
+   * The duration recorded on the treatment itself (M6c). It wins over the
+   * product table: the beekeeper read the actual box, we read a default.
+   * A custom ('other') product has no table entry, so this is the ONLY way
+   * it ever gets a removal reminder.
+   */
+  overrideDays?: number | null
 ): RuleTaskDraft[] {
-  const days = s.treatmentDurationDays[product];
+  const days = overrideDays ?? s.treatmentDurationDays[product];
   if (days == null) return [];
   return [draft('R2_END', dueInDays(startedAtIso, days))];
 }
 
-/** R2 (end) — treatment ended: recount varroa to confirm it worked. */
-export function evaluateTreatmentEnded(endedAtIso: string, s: RuleSettings): RuleTaskDraft[] {
-  return [draft('R2_RECOUNT', dueInDays(endedAtIso, s.postTreatmentRecountDays))];
+/**
+ * Treatment ended — two follow-ups:
+ *  - R2 recount: did it actually work?
+ *  - R7: the day the honey is clear again, if the product has a withdrawal
+ *    period. Skipped when it is 0 (nothing to wait for) or null (unknown —
+ *    the app says nothing rather than guessing at a harvest being safe).
+ */
+export function evaluateTreatmentEnded(
+  endedAtIso: string,
+  s: RuleSettings,
+  withdrawalDays?: number | null
+): RuleTaskDraft[] {
+  const drafts = [draft('R2_RECOUNT', dueInDays(endedAtIso, s.postTreatmentRecountDays))];
+  if (withdrawalDays != null && withdrawalDays > 0) {
+    drafts.push(draft('R7', dueInDays(endedAtIso, withdrawalDays)));
+  }
+  return drafts;
+}
+
+/**
+ * When honey from this hive is safe again, or null if there is nothing to
+ * wait for. Pure date arithmetic on the treatment's own recorded numbers —
+ * the screens state this as a fact, they never compute a verdict from it.
+ */
+export function harvestSafeFrom(
+  endedAtIso: string | null,
+  withdrawalDays: number | null
+): string | null {
+  if (endedAtIso == null || withdrawalDays == null || withdrawalDays <= 0) return null;
+  return dueInDays(endedAtIso, withdrawalDays);
 }
 
 // ---------------------------------------------------------------------------

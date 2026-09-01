@@ -34,4 +34,6 @@ export const SETTING_KEYS = {
   ruleSettings: 'rule_settings',
   /** '1' once the one-time swipe-gesture hint on Today was dismissed. */
   swipeHintSeen: 'swipe_hint_seen',
+  /** JSON CustomProduct[] — the "Other" treatment names you've used before. */
+  customTreatmentProducts: 'custom_treatment_products',
 } as const;

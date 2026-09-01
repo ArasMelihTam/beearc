@@ -6,10 +6,15 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { EmptyState, Screen } from '@/src/components/Screen';
 import { PrimaryButton } from '@/src/components/PrimaryButton';
 import { hivesRepo, type Hive } from '@/src/db/repos/hivesRepo';
-import { treatmentsRepo, type Treatment } from '@/src/db/repos/treatmentsRepo';
+import {
+  treatmentProductLabel,
+  treatmentsRepo,
+  type Treatment,
+} from '@/src/db/repos/treatmentsRepo';
 import { formatAgo, formatDate } from '@/src/i18n/formatDate';
 import { applyTreatmentEnded } from '@/src/logic/status';
 import { nowIso } from '@/src/db/util';
+import { harvestSafeFrom } from '@/src/logic/rules';
 import { useTheme } from '@/src/theme/useTheme';
 import { sizes, sp } from '@/src/theme/tokens';
 
@@ -70,7 +75,7 @@ export default function HiveTreatmentsScreen() {
           onPress={() => router.push(`/treatments/${active.id}/edit`)}
         >
           <Text style={[styles.product, { color: tokens.text }]}>
-            {t(`treatmentProduct.${active.product}`)}
+            {treatmentProductLabel(active, t)}
           </Text>
           <View style={styles.detailRow}>
             <View style={styles.detail}>
@@ -128,7 +133,7 @@ export default function HiveTreatmentsScreen() {
               style={[styles.card, { backgroundColor: tokens.surface, borderColor: tokens.border }]}
             >
               <Text style={[styles.product, { color: tokens.text }]}>
-                {t(`treatmentProduct.${item.product}`)}
+                {treatmentProductLabel(item, t)}
               </Text>
               <View style={styles.detailRow}>
                 <Text style={[styles.detailText, { color: tokens.textMuted }]}>
@@ -138,6 +143,10 @@ export default function HiveTreatmentsScreen() {
                   <Text style={[styles.detailText, { color: tokens.textMuted }]}>{item.dose}</Text>
                 ) : null}
               </View>
+              {/* The honey withdrawal period (M6c), stated as a date. While
+                  it is running it is a restriction and reads in terracotta;
+                  once past, it is simply a fact worth keeping in the record. */}
+              <HarvestLine treatment={item} />
               {item.notes ? (
                 <Text numberOfLines={2} style={[styles.notes, { color: tokens.textMuted }]}>
                   {item.notes}
@@ -153,6 +162,38 @@ export default function HiveTreatmentsScreen() {
         onPress={() => router.push(`/treatments/new?hiveId=${hive.id}`)}
       />
     </Screen>
+  );
+}
+
+/**
+ * "Do not harvest before 12 September" / "Honey clear since 12 September".
+ * Renders nothing when the treatment carries no withdrawal figure — silence
+ * is the only honest output when the app does not know.
+ */
+function HarvestLine({ treatment }: { treatment: Treatment }) {
+  const { t } = useTranslation();
+  const { tokens } = useTheme();
+  const safeFrom = harvestSafeFrom(treatment.endedAt, treatment.withdrawalDays);
+  if (!safeFrom) return null;
+  const restricted = new Date(safeFrom) > new Date();
+  return (
+    <View style={styles.detail}>
+      <MaterialCommunityIcons
+        name={restricted ? 'alert-circle-outline' : 'check-circle-outline'}
+        size={18}
+        color={restricted ? tokens.statusWarning : tokens.statusHealthy}
+      />
+      <Text
+        style={[
+          styles.detailText,
+          { color: restricted ? tokens.statusWarning : tokens.statusHealthy },
+        ]}
+      >
+        {restricted
+          ? t('treatments.harvestNotBefore', { date: formatDate(safeFrom) })
+          : t('treatments.harvestSafeNow', { date: formatDate(safeFrom) })}
+      </Text>
+    </View>
   );
 }
 

@@ -20,6 +20,11 @@
     "dayPart_one": "{{count}} gün",
     "dayPart_other": "{{count}} gün"
   },
+  "days": {
+    "notSet": "Belirtilmedi",
+    "count_one": "{{count}} gün",
+    "count_other": "{{count}} gün"
+  },
   "dates": {
     "today": "Bugün",
     "yesterday": "Dün",
@@ -71,7 +76,8 @@
     "R2_RECOUNT": "İlaçlama sonrası varroa sayımı",
     "R3": "Ana arıyı / yumurtayı tekrar kontrol et",
     "R4": "Varroa mücadelesi planla",
-    "R5": "Beslemeyi kontrol et"
+    "R5": "Beslemeyi kontrol et",
+    "R7": "Bekleme süresi doldu — bal hasada uygun"
   },
   "rulesSettings": {
     "title": "Asistan kuralları",
@@ -293,12 +299,23 @@
     "started": "Başlangıç",
     "ended": "Bitiş",
     "stillOnHive": "Hâlâ kovanda mı?",
+    "customName": "Ürün adı",
+    "customNamePlaceholder": "örn. Apiguard",
+    "customNameRequired": "Lütfen ürün adını yaz.",
+    "customRecent": "Daha önce kullanılanlar",
+    "customForget": "{{name}} ürününü listeden çıkar",
+    "duration": "Kovanda kalma süresi",
+    "durationHint": "Asistan bu kadar gün sonra ürünü almanı hatırlatır. Kutunun üzerinde yazan, uygulamanın tahmininden önce gelir.",
+    "withdrawal": "Bal bekleme süresi",
+    "withdrawalHint": "Ürün alındıktan sonra balın hasada uygun hale gelmesi için geçmesi gereken gün sayısı. Ürün etiketine bak — 0 beklemek gerekmiyor demek, \"Belirtilmedi\" ise uygulama bu konuda hiçbir şey söylemez.",
+    "harvestNotBefore": "{{date}} tarihinden önce hasat etme",
+    "harvestSafeNow": "{{date}} tarihinden beri bal temiz",
     "notes": "Notlar",
     "end": "İlaçlamayı bitir",
     "endTitle": "İlaçlama bitirilsin mi?",
     "endMessage": "Bugün kaldırılmış olarak kaydedilecek ve asistan sonrasında varroa sayımını hatırlatacak.",
-    "lastWarningTitle": "Önce son ilaçlamaya bakın",
-    "lastWarningBody": "{{product}}, {{date}} ({{ago}}) başladı. Çok erken tekrar ilaçlamak koloniyi zehirleme ve balda kalıntı riski taşır.",
+    "lastWarningTitle": "Dikkat — son ilaçlama",
+    "lastWarningBody": "{{product}}, {{date}} tarihinde başladı ({{ago}}). Çok erken tekrar ilaçlamak koloniye aşırı doz verme ve balda kalıntı riski taşır.",
     "planTitle": "Varroa ilaçlaması",
     "planMessage": "Varroa sayımı sınırınızın üzerindeydi. İlaçlamayı şimdi kaydetmek ister misiniz?",
     "planStart": "İlaçlama başlat",

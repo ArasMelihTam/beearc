@@ -47,6 +47,10 @@ export async function getRuleSettings(latitude?: number | null): Promise<RuleSet
         ...base.treatmentDurationDays,
         ...(stored.treatmentDurationDays ?? {}),
       },
+      treatmentWithdrawalDays: {
+        ...base.treatmentWithdrawalDays,
+        ...(stored.treatmentWithdrawalDays ?? {}),
+      },
       season: stored.season ?? base.season,
       preWinter: stored.preWinter ?? base.preWinter,
     };
@@ -248,7 +252,14 @@ export async function applyTreatmentStarted(treatment: Treatment): Promise<void>
   const settings = await settingsForHive(hive);
   await materializeDrafts(
     hive,
-    evaluateTreatmentStarted(treatment.product, treatment.startedAt, settings)
+    // The duration recorded on the row wins over the product table (M6c) —
+    // it is what the beekeeper read off the actual box.
+    evaluateTreatmentStarted(
+      treatment.product,
+      treatment.startedAt,
+      settings,
+      treatment.durationDays
+    )
   );
 }
 
@@ -256,6 +267,8 @@ export async function applyTreatmentStarted(treatment: Treatment): Promise<void>
  * R2 (end) — the treatment came off: close the "end / remove treatment"
  * reminder if it's still open (it just happened, that's the whole point), and
  * schedule the varroa recount that proves the treatment actually worked.
+ * R7 books the day the honey is clear again, when the product has a
+ * withdrawal period recorded.
  */
 export async function applyTreatmentEnded(treatment: Treatment): Promise<void> {
   const hive = await hivesRepo.getById(treatment.hiveId);
@@ -263,7 +276,11 @@ export async function applyTreatmentEnded(treatment: Treatment): Promise<void> {
   const settings = await settingsForHive(hive);
   const endTask = await tasksRepo.getOpenBySource(hive.id, ruleSource('R2_END'));
   if (endTask) await setTaskDone(endTask, true);
-  await materializeDrafts(hive, evaluateTreatmentEnded(treatment.endedAt, settings));
+  await materializeDrafts(
+    hive,
+    // R7 rides along when the treatment carries a withdrawal period.
+    evaluateTreatmentEnded(treatment.endedAt, settings, treatment.withdrawalDays)
+  );
 }
 
 /**

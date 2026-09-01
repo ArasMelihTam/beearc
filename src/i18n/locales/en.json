@@ -20,6 +20,11 @@
     "dayPart_one": "{{count}} day",
     "dayPart_other": "{{count}} days"
   },
+  "days": {
+    "notSet": "Not set",
+    "count_one": "{{count}} day",
+    "count_other": "{{count}} days"
+  },
   "dates": {
     "today": "Today",
     "yesterday": "Yesterday",
@@ -71,7 +76,8 @@
     "R2_RECOUNT": "Post-treatment varroa recount",
     "R3": "Recheck for queen/eggs",
     "R4": "Plan varroa treatment",
-    "R5": "Check feeding"
+    "R5": "Check feeding",
+    "R7": "Withdrawal period over — honey safe to harvest"
   },
   "rulesSettings": {
     "title": "Assistant rules",
@@ -293,6 +299,17 @@
     "started": "Started",
     "ended": "Ended",
     "stillOnHive": "Still on the hive?",
+    "customName": "Product name",
+    "customNamePlaceholder": "e.g. Apiguard",
+    "customNameRequired": "Please type the product name.",
+    "customRecent": "Used before",
+    "customForget": "Forget {{name}}",
+    "duration": "Leave on for",
+    "durationHint": "The assistant reminds you to take it off after this many days. What the box in your hand says beats what the app guessed.",
+    "withdrawal": "Honey withdrawal",
+    "withdrawalHint": "Days after removal before honey is safe to harvest. Check the product label — 0 means no waiting, \"Not set\" means the app stays quiet about it.",
+    "harvestNotBefore": "Do not harvest before {{date}}",
+    "harvestSafeNow": "Honey clear since {{date}}",
     "notes": "Notes",
     "end": "End treatment",
     "endTitle": "End this treatment?",
