@@ -315,7 +315,7 @@
     "endTitle": "İlaçlama bitirilsin mi?",
     "endMessage": "Bugün kaldırılmış olarak kaydedilecek ve asistan sonrasında varroa sayımını hatırlatacak.",
     "lastWarningTitle": "Dikkat — son ilaçlama",
-    "lastWarningBody": "{{product}}, {{date}} tarihinde başladı ({{ago}}). Çok erken tekrar ilaçlamak koloniye aşırı doz verme ve balda kalıntı riski taşır.",
+    "lastWarningBody": "{{product}}, {{date}} tarihinde başladı ({{ago}}). Olması gerekenden erken tekrar ilaçlamak koloniyi zehirleme ve balda kalıntı riski taşır.",
     "planTitle": "Varroa ilaçlaması",
     "planMessage": "Varroa sayımı sınırınızın üzerindeydi. İlaçlamayı şimdi kaydetmek ister misiniz?",
     "planStart": "İlaçlama başlat",

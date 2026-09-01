@@ -102,7 +102,7 @@ All notable changes to Beearc. Format loosely follows [Keep a Changelog](https:/
 - M5: App could not open — "Failed to run the query 'ALTER TABLE `inspections` ADD `other_insects_seen` integer'". Migration 0005 had been regenerated after already running on the device, and drizzle re-applies any migration dated later than the newest ledger row. `repairMigrationLedger()` now records the migration as applied when its column is already present, so the chain completes without losing any data
 - M5: The database error screen showed which query failed but not why (drizzle hides the SQLite reason in `error.cause`) — the underlying message is now shown too
 - M6b: The swipe hint on Today told the opposite of what the app does ("swipe left to edit, right to delete") — it sent you to the *edit* gesture when you wanted to delete. The code was right; the hint is now corrected in both languages
-- M6c: The Turkish last-treatment warning read "{{product}}, {{date}} ({{ago}}) başladı", splitting the date from its verb, and said "koloniyi zehirleme" (poisoning the colony) where it meant overdosing. Reworded
+- M6c: The Turkish last-treatment warning read "{{product}}, {{date}} ({{ago}}) başladı", splitting the date from its verb, and said "Çok erken" where the beekeeper's meaning is "olması gerekenden erken" — earlier than it should be. Reworded. ("zehirleme" was correct and stays: over-treating poisons the colony, and that is the beekeeper's own word for the risk)
 - M6c: Custom product names are matched with Turkish i-folding — without it "APIVAR" lowercases to "apıvar" with a dotless ı on a Turkish phone, and the same product would have been remembered twice
 
 ### Fixed
